@@ -9,10 +9,13 @@ import org.carlspring.strongbox.configuration.ConfigurationManager;
 import org.carlspring.strongbox.domain.ArtifactEntry;
 import org.carlspring.strongbox.locator.handlers.RemoveTimestampedSnapshotOperation;
 import org.carlspring.strongbox.io.ArtifactOutputStream;
+import org.carlspring.strongbox.io.ArtifactPath;
 import org.carlspring.strongbox.providers.ProviderImplementationException;
 import org.carlspring.strongbox.providers.layout.LayoutProvider;
 import org.carlspring.strongbox.providers.layout.LayoutProviderRegistry;
 import org.carlspring.strongbox.providers.search.SearchException;
+import org.carlspring.strongbox.providers.storage.StorageProvider;
+import org.carlspring.strongbox.providers.storage.StorageProviderRegistry;
 import org.carlspring.strongbox.services.ArtifactEntryService;
 import org.carlspring.strongbox.services.ArtifactManagementService;
 import org.carlspring.strongbox.services.ArtifactResolutionService;
@@ -63,30 +66,24 @@ public class ArtifactManagementServiceImpl
 
     @Inject
     private ArtifactResolutionService artifactResolutionService;
-
     @Inject
     private VersionValidatorService versionValidatorService;
-
     @Inject
     private ChecksumCacheManager checksumCacheManager;
-
     @Inject
     private MavenSnapshotManager mavenSnapshotManager;
-
     @Inject
     private ConfigurationManager configurationManager;
-
     @Inject
     private RepositoryIndexManager repositoryIndexManager;
-
     @Inject
     private ArtifactOperationsValidator artifactOperationsValidator;
-
     @Inject
     private LayoutProviderRegistry layoutProviderRegistry;
-
     @Inject
     private ArtifactEntryService artifactEntryService;
+    @Inject
+    private StorageProviderRegistry storageProviderRegistry;
 
 
     @Override
@@ -516,13 +513,18 @@ public class ArtifactManagementServiceImpl
     {
         Storage storage = getConfiguration().getStorage(storageId);
         Repository repository = storage.getRepository(repositoryId);
-
+        
+        LayoutProvider layoutProvider = layoutProviderRegistry.getProvider(repository.getLayout());
+        ArtifactCoordinates artifactCoordinates = layoutProvider.getArtifactCoordinates(artifactPath);
+        
+        StorageProvider storageProvider = storageProviderRegistry.getProvider(repository.getImplementation());
+        ArtifactPath repositoryArtifactPath = storageProvider.resolve(repository, artifactCoordinates);
+        
         if (repository.getPolicy().equals(RepositoryPolicyEnum.SNAPSHOT.getPolicy()))
         {
             RemoveTimestampedSnapshotOperation operation = new RemoveTimestampedSnapshotOperation(mavenSnapshotManager);
             operation.setStorage(storage);
-            operation.setRepository(repository);
-            operation.setBasePath(artifactPath);
+            operation.setBasePath(repositoryArtifactPath);
             operation.setNumberToKeep(numberToKeep);
             operation.setKeepPeriod(keepPeriod);
 

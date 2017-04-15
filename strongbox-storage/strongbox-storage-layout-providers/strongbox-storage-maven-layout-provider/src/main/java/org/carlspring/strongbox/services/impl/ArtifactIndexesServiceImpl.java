@@ -1,11 +1,15 @@
 package org.carlspring.strongbox.services.impl;
 
+import org.carlspring.strongbox.artifact.coordinates.ArtifactCoordinates;
 import org.carlspring.strongbox.artifact.locator.ArtifactDirectoryLocator;
 import org.carlspring.strongbox.configuration.Configuration;
 import org.carlspring.strongbox.configuration.ConfigurationManager;
+import org.carlspring.strongbox.io.ArtifactPath;
 import org.carlspring.strongbox.locator.handlers.MavenIndexerManagementOperation;
 import org.carlspring.strongbox.providers.layout.LayoutProvider;
 import org.carlspring.strongbox.providers.layout.LayoutProviderRegistry;
+import org.carlspring.strongbox.providers.storage.StorageProvider;
+import org.carlspring.strongbox.providers.storage.StorageProviderRegistry;
 import org.carlspring.strongbox.repository.MavenRepositoryFeatures;
 import org.carlspring.strongbox.services.ArtifactIndexesService;
 import org.carlspring.strongbox.services.RepositoryManagementService;
@@ -33,16 +37,14 @@ public class ArtifactIndexesServiceImpl
 
     @Inject
     private ConfigurationManager configurationManager;
-
     @Inject
     private RepositoryIndexManager repositoryIndexManager;
-
     @Inject
     private RepositoryManagementService repositoryManagementService;
-
     @Inject
     private LayoutProviderRegistry layoutProviderRegistry;
-
+    @Inject
+    private StorageProviderRegistry storageProviderRegistry;
 
     @Override
     public void rebuildIndex(String storageId,
@@ -53,6 +55,12 @@ public class ArtifactIndexesServiceImpl
         Storage storage = getConfiguration().getStorage(storageId);
         Repository repository = storage.getRepository(repositoryId);
 
+        LayoutProvider layoutProvider = layoutProviderRegistry.getProvider(repository.getLayout());
+        StorageProvider storageProvider = storageProviderRegistry.getProvider(repository.getImplementation());
+        
+        ArtifactCoordinates artifactCoordinates = layoutProvider.getArtifactCoordinates(artifactPath);
+        ArtifactPath repositoryArtifactPath = storageProvider.resolve(repository, artifactCoordinates);
+        
         artifactPath = artifactPath == null ? "/" : artifactPath;
 
         if (repository.isIndexingEnabled())
@@ -60,15 +68,13 @@ public class ArtifactIndexesServiceImpl
             MavenIndexerManagementOperation operation = new MavenIndexerManagementOperation(repositoryIndexManager);
 
             operation.setStorage(storage);
-            operation.setRepository(repository);
             //noinspection ConstantConditions
-            operation.setBasePath(artifactPath);
+            operation.setBasePath(repositoryArtifactPath);
 
             ArtifactDirectoryLocator locator = new ArtifactDirectoryLocator();
             locator.setOperation(operation);
             locator.locateArtifactDirectories();
 
-            LayoutProvider layoutProvider = layoutProviderRegistry.getProvider(repository.getLayout());
             MavenRepositoryFeatures features = (MavenRepositoryFeatures) layoutProvider.getRepositoryFeatures();
 
             features.pack(storageId, repositoryId);
