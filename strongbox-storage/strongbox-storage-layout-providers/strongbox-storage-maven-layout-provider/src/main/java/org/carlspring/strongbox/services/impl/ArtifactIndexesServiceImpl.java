@@ -1,9 +1,14 @@
 package org.carlspring.strongbox.services.impl;
 
+import org.carlspring.strongbox.artifact.coordinates.ArtifactCoordinates;
 import org.carlspring.strongbox.artifact.locator.ArtifactDirectoryLocator;
 import org.carlspring.strongbox.configuration.Configuration;
 import org.carlspring.strongbox.configuration.ConfigurationManager;
+<<<<<<< Upstream, based on upstream/SB-787
 import org.carlspring.strongbox.io.RepositoryPath;
+=======
+import org.carlspring.strongbox.io.ArtifactPath;
+>>>>>>> f5a9d3c SB-761: `RepositoryPath` related refactoring
 import org.carlspring.strongbox.locator.handlers.MavenIndexerManagementOperation;
 import org.carlspring.strongbox.providers.layout.LayoutProvider;
 import org.carlspring.strongbox.providers.layout.LayoutProviderRegistry;
@@ -37,16 +42,16 @@ public class ArtifactIndexesServiceImpl
 
     @Inject
     private ConfigurationManager configurationManager;
-
     @Inject
     private RepositoryIndexManager repositoryIndexManager;
-
     @Inject
     private RepositoryManagementService repositoryManagementService;
-
     @Inject
     private LayoutProviderRegistry layoutProviderRegistry;
+<<<<<<< Upstream, based on upstream/SB-787
 
+=======
+>>>>>>> f5a9d3c SB-761: `RepositoryPath` related refactoring
     @Inject
     private StorageProviderRegistry storageProviderRegistry;
 
@@ -59,11 +64,33 @@ public class ArtifactIndexesServiceImpl
         Storage storage = getConfiguration().getStorage(storageId);
         Repository repository = storage.getRepository(repositoryId);
 
+        LayoutProvider layoutProvider = layoutProviderRegistry.getProvider(repository.getLayout());
+        StorageProvider storageProvider = storageProviderRegistry.getProvider(repository.getImplementation());
+        
+        ArtifactCoordinates artifactCoordinates = layoutProvider.getArtifactCoordinates(artifactPath);
+        ArtifactPath repositoryArtifactPath = storageProvider.resolve(repository, artifactCoordinates);
+        
         artifactPath = artifactPath == null ? "/" : artifactPath;
 
         if (!repository.isIndexingEnabled())
         {
+<<<<<<< Upstream, based on upstream/SB-787
             return;
+=======
+            MavenIndexerManagementOperation operation = new MavenIndexerManagementOperation(repositoryIndexManager);
+
+            operation.setStorage(storage);
+            //noinspection ConstantConditions
+            operation.setBasePath(repositoryArtifactPath);
+
+            ArtifactDirectoryLocator locator = new ArtifactDirectoryLocator();
+            locator.setOperation(operation);
+            locator.locateArtifactDirectories();
+
+            MavenRepositoryFeatures features = (MavenRepositoryFeatures) layoutProvider.getRepositoryFeatures();
+
+            features.pack(storageId, repositoryId);
+>>>>>>> f5a9d3c SB-761: `RepositoryPath` related refactoring
         }
         LayoutProvider layoutProvider = layoutProviderRegistry.getProvider(repository.getLayout());
         StorageProvider storageProvider = storageProviderRegistry.getProvider(repository.getImplementation());

@@ -101,12 +101,15 @@ public class RepositoryPath
 
     public RepositoryPath normalize()
     {
+        //TODO: check implementation against `String org.carlspring.strongbox.util.FileUtils.normalizePath(String path)`
         return createByTemplate(getTarget().normalize());
     }
 
     public RepositoryPath resolve(Path other)
     {
-        other = getTarget(other);
+        if (other == null){
+            return this;
+        }
         return createByTemplate(getTarget().resolve(other));
     }
 
@@ -132,10 +135,10 @@ public class RepositoryPath
         return createByTemplate(getTarget().resolveSibling(other));
     }
 
-    public Path relativize(Path other)
+    public RepositoryPath relativize(Path other)
     {
         other = getTarget(other);
-        return getTarget().relativize(other);
+        return createByTemplate(getTarget().relativize(other));
     }
     
     public Path getRepositoryRelative()
