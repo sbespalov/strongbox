@@ -154,9 +154,9 @@ public class RepositoryPath
         throw new UnsupportedOperationException();
     }
 
-    public Path toAbsolutePath()
+    public RepositoryPath toAbsolutePath()
     {
-        throw new UnsupportedOperationException();
+        return createByTemplate(getTarget().toAbsolutePath());
     }
 
     public Path toRealPath(LinkOption... options)
