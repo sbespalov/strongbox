@@ -1,6 +1,5 @@
 package org.carlspring.strongbox.nuget.filter;
 
-import org.antlr.v4.runtime.tree.RuleNode;
 import org.carlspring.strongbox.nuget.filter.NugetODataFilterParser.FilterContext;
 import org.carlspring.strongbox.nuget.filter.NugetODataFilterParser.FilterExpContext;
 import org.carlspring.strongbox.nuget.filter.NugetODataFilterParser.FilterOpContext;
@@ -9,64 +8,73 @@ import org.carlspring.strongbox.nuget.filter.NugetODataFilterParser.TokenExpCont
 import org.carlspring.strongbox.nuget.filter.NugetODataFilterParser.TokenExpFunctionContext;
 import org.carlspring.strongbox.nuget.filter.NugetODataFilterParser.TokenExpLeftContext;
 import org.carlspring.strongbox.nuget.filter.NugetODataFilterParser.TokenExpRightContext;
+import org.carlspring.strongbox.providers.repository.RepositorySearchRequest;
 
-public class NugetODataFilterVisitorImpl extends NugetODataFilterBaseVisitor<String>
+public class NugetODataFilterVisitorImpl extends NugetODataFilterBaseVisitor<RepositorySearchRequest>
 {
 
-    @Override
-    public String visitFilter(FilterContext ctx)
+    private RepositorySearchRequest repositorySearchRequest;
+
+    public NugetODataFilterVisitorImpl(RepositorySearchRequest repositorySearchRequest)
     {
+        super();
+        this.repositorySearchRequest = repositorySearchRequest;
+    }
+
+    @Override
+    public RepositorySearchRequest visitFilter(FilterContext ctx)
+    {
+
         return super.visitFilter(ctx);
     }
 
     @Override
-    public String visitFilterExp(FilterExpContext ctx)
+    public RepositorySearchRequest visitFilterExp(FilterExpContext ctx)
     {
+
         return super.visitFilterExp(ctx);
     }
 
     @Override
-    public String visitTokenExp(TokenExpContext ctx)
+    public RepositorySearchRequest visitTokenExp(TokenExpContext ctx)
     {
-        System.out.println(ctx.TAG());
+
         return super.visitTokenExp(ctx);
     }
 
     @Override
-    public String visitTokenExpRight(TokenExpRightContext ctx)
+    public RepositorySearchRequest visitTokenExpRight(TokenExpRightContext ctx)
     {
+
         return super.visitTokenExpRight(ctx);
     }
 
     @Override
-    public String visitTokenExpLeft(TokenExpLeftContext ctx)
+    public RepositorySearchRequest visitTokenExpLeft(TokenExpLeftContext ctx)
     {
+
         return super.visitTokenExpLeft(ctx);
     }
 
     @Override
-    public String visitTokenExpFunction(TokenExpFunctionContext ctx)
+    public RepositorySearchRequest visitTokenExpFunction(TokenExpFunctionContext ctx)
     {
+
         return super.visitTokenExpFunction(ctx);
     }
 
     @Override
-    public String visitFilterOp(FilterOpContext ctx)
+    public RepositorySearchRequest visitFilterOp(FilterOpContext ctx)
     {
+
         return super.visitFilterOp(ctx);
     }
 
     @Override
-    public String visitLogicalOp(LogicalOpContext ctx)
+    public RepositorySearchRequest visitLogicalOp(LogicalOpContext ctx)
     {
+
         return super.visitLogicalOp(ctx);
     }
 
-    @Override
-    public String visitChildren(RuleNode node)
-    {
-        return super.visitChildren(node);
-    }
-
-    
 }
