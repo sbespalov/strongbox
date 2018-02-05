@@ -68,11 +68,6 @@ ATTRIBUTE
     | 'Version'
 ;
 
-VALUE
-:
-    [a-zA-Z_] [a-zA-Z_0-9.]*
-;
-
 EQ
 :
     'eq'
@@ -96,6 +91,11 @@ OR
 NOT
 :
     'not'
+;
+
+VALUE
+:
+    [a-zA-Z_0-9.]+
 ;
 
 WHITESPACE
