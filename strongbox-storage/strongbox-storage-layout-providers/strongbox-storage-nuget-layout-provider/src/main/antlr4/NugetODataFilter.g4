@@ -6,70 +6,92 @@ grammar NugetODataFilter;
 
 filter
 :
-	filterExp
+    filterExp
 ;
 
 filterExp
 :
-	'(' filterExp ')'
-	| left = filterExp op = logicalOp right = filterExp
-	| tokenExp
+    '(' filterExp ')'
+    | left = filterExp op = logicalOp right = filterExp
+    | tokenExp
 ;
 
 tokenExp
 :
-	ATTRIBUTE filterOp VALUE
-	| TAG
+    left = tokenExpLeft op = filterOp right = tokenExpRight
+    | TAG
+;
+
+tokenExpRight
+:
+    '\'' VALUE '\''
+;
+
+tokenExpLeft
+:
+    ATTRIBUTE
+    | tokenExpFunction '(' ATTRIBUTE ')'
+;
+
+tokenExpFunction
+:
+    'tolower'
 ;
 
 filterOp
 :
-	EQ
+    EQ
+    | GE
 ;
 
 logicalOp
 :
-	AND
-	| OR
+    AND
+    | OR
 ;
 
 TAG
 :
-	'IsLatestVersion'
+    'IsLatestVersion'
 ;
 
 ATTRIBUTE
 :
-	'Id'
-	| 'Version'
+    'Id'
+    | 'Version'
 ;
 
 VALUE
 :
-	[a-zA-Z_] [a-zA-Z_0-9]*
+    [a-zA-Z_] [a-zA-Z_0-9.]*
 ;
 
 EQ
 :
-	'eq'
+    'eq'
+;
+
+GE
+:
+    'ge'
 ;
 
 AND
 :
-	'and'
+    'and'
 ;
 
 OR
 :
-	'or'
+    'or'
 ;
 
 NOT
 :
-	'not'
+    'not'
 ;
 
-WS
+WHITESPACE
 :
-	' '
+    ' ' -> skip
 ;
