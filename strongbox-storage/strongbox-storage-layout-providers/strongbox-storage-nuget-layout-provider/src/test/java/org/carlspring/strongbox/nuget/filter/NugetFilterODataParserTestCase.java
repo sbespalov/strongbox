@@ -28,7 +28,7 @@ public class NugetFilterODataParserTestCase
 
         System.out.println(filter.toString());
 
-        CodePointCharStream is = CharStreams.fromString("tolower(Id) eq 'org.carlspring.strongbox.nuget.test.lastversion' and IsLatestVersion and Version eq '1.0.0'");
+        CodePointCharStream is = CharStreams.fromString("(tolower(Id) eq 'org.carlspring.strongbox.nuget.test.lastversion') and (IsLatestVersion and Version eq '1.0.0')");
         NugetODataFilterLexer lexer = new NugetODataFilterLexer(is);
         CommonTokenStream commonTokenStream = new CommonTokenStream(lexer);
         NugetODataFilterParser parser = new NugetODataFilterParser(commonTokenStream);

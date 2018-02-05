@@ -12,13 +12,15 @@ filter
 filterExp
 :
     '(' filterExp ')'
-    | left = filterExp op = logicalOp right = filterExp
+    | vFilterExpLeft = filterExp vLogicalOp = logicalOp vFilterExpRight =
+    filterExp
     | tokenExp
 ;
 
 tokenExp
 :
-    left = tokenExpLeft op = filterOp right = tokenExpRight
+    vTokenExpLeft = tokenExpLeft vFilterOp = filterOp vTokenExpRight =
+    tokenExpRight
     | TAG
 ;
 
@@ -35,7 +37,7 @@ tokenExpLeft
 
 tokenExpFunction
 :
-    'tolower'
+    TO_LOWER
 ;
 
 filterOp
@@ -48,6 +50,11 @@ logicalOp
 :
     AND
     | OR
+;
+
+TO_LOWER
+:
+    'tolower'
 ;
 
 TAG
