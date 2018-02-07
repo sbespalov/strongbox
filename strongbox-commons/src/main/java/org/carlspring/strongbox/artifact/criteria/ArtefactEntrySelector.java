@@ -1,55 +1,28 @@
 package org.carlspring.strongbox.artifact.criteria;
 
-import java.util.Map;
-import java.util.Set;
-
-import org.carlspring.strongbox.artifact.ArtifactTag;
+import java.util.Optional;
 
 public class ArtefactEntrySelector
 {
-    private String storageId;
-    private String repositoryId;
-    private Map<String, String> coordinates;
-    private Set<ArtifactTag> tagSet;
 
-    public String getStorageId()
+    private Projection projection;
+
+    private ArtefactEntryPredicate predicate;
+
+    public ArtefactEntryPredicate getPredicate()
     {
-        return storageId;
+        return predicate;
     }
 
-    public void setStorageId(String storageId)
+    public void setPredicate(ArtefactEntryPredicate predicate)
     {
-        this.storageId = storageId;
+        this.predicate = predicate;
     }
 
-    public String getRepositoryId()
+    public ArtefactEntrySelector eq(ArtefactEntryCriteria c)
     {
-        return repositoryId;
+        ArtefactEntryPredicate predicate = new ArtefactEntryPredicate(c);
+        this.predicate = Optional.ofNullable(this.predicate).map(p -> p.and(p)).orElse(predicate);
+        return this;
     }
-
-    public void setRepositoryId(String repositoryId)
-    {
-        this.repositoryId = repositoryId;
-    }
-
-    public Map<String, String> getCoordinates()
-    {
-        return coordinates;
-    }
-
-    public void setCoordinates(Map<String, String> coordinates)
-    {
-        this.coordinates = coordinates;
-    }
-
-    public Set<ArtifactTag> getTagSet()
-    {
-        return tagSet;
-    }
-
-    public void setTagSet(Set<ArtifactTag> tagSet)
-    {
-        this.tagSet = tagSet;
-    }
-
 }

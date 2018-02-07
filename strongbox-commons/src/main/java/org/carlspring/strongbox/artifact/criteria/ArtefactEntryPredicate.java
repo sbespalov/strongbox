@@ -3,20 +3,21 @@ package org.carlspring.strongbox.artifact.criteria;
 public class ArtefactEntryPredicate
 {
 
-    private ArtefactEntrySelector selector;
+    private ArtefactEntryCriteria criteria;
 
-    private BooleanOperator operator;
+    private BooleanOperator operator = BooleanOperator.AND;
 
     private ArtefactEntryPredicate predicate;
 
-    public ArtefactEntrySelector getSelector()
+    public ArtefactEntryPredicate(ArtefactEntryCriteria criteria)
     {
-        return selector;
+        super();
+        this.criteria = criteria;
     }
 
-    public void setSelector(ArtefactEntrySelector selector)
+    public ArtefactEntryCriteria getCriteria()
     {
-        this.selector = selector;
+        return criteria;
     }
 
     public BooleanOperator getOperator()
@@ -24,19 +25,23 @@ public class ArtefactEntryPredicate
         return operator;
     }
 
-    public void setOperator(BooleanOperator operator)
-    {
-        this.operator = operator;
-    }
-
     public ArtefactEntryPredicate getPredicate()
     {
         return predicate;
     }
 
-    public void setPredicate(ArtefactEntryPredicate predicate)
+    public ArtefactEntryPredicate and(ArtefactEntryPredicate p)
     {
-        this.predicate = predicate;
+        this.operator = BooleanOperator.AND;
+        this.predicate = p;
+        return p;
+    }
+
+    public ArtefactEntryPredicate or(ArtefactEntryPredicate p)
+    {
+        this.operator = BooleanOperator.OR;
+        this.predicate = p;
+        return p;
     }
 
     public static enum BooleanOperator
