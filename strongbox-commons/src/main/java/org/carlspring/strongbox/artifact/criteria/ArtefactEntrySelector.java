@@ -1,27 +1,16 @@
-package org.carlspring.strongbox.providers.repository;
+package org.carlspring.strongbox.artifact.criteria;
 
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import org.carlspring.strongbox.artifact.ArtifactTag;
 
-public class RepositorySearchRequest
+public class ArtefactEntrySelector
 {
     private String storageId;
     private String repositoryId;
-    private Map<String, String> coordinates = new HashMap<>();
-    private Set<ArtifactTag> tagSet = new HashSet<>();
-    private boolean strict;
-
-    public RepositorySearchRequest(String storageId,
-                                   String repositoryId)
-    {
-        super();
-        this.storageId = storageId;
-        this.repositoryId = repositoryId;
-    }
+    private Map<String, String> coordinates;
+    private Set<ArtifactTag> tagSet;
 
     public String getStorageId()
     {
@@ -52,7 +41,7 @@ public class RepositorySearchRequest
     {
         this.coordinates = coordinates;
     }
-    
+
     public Set<ArtifactTag> getTagSet()
     {
         return tagSet;
@@ -61,16 +50,6 @@ public class RepositorySearchRequest
     public void setTagSet(Set<ArtifactTag> tagSet)
     {
         this.tagSet = tagSet;
-    }
-
-    public boolean isStrict()
-    {
-        return strict;
-    }
-
-    public void setStrict(boolean strict)
-    {
-        this.strict = strict;
     }
 
 }
