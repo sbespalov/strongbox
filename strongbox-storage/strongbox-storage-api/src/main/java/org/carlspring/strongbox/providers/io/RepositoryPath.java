@@ -6,6 +6,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.WatchEvent.Kind;
 import java.nio.file.WatchEvent.Modifier;
 import java.nio.file.WatchKey;
@@ -270,4 +271,22 @@ public class RepositoryPath
         return getTarget().hashCode();
     }
 
+    public static void main(String[] args) throws Exception {
+        Path a = Paths.get("/home/sbespalov/share");
+        Path b = Paths.get("/home/sbespalov");
+        
+        System.out.println(String.format("a=%s", a));
+        System.out.println(String.format("b=%s", b));
+        System.out.println();
+        
+        System.out.println(b);
+        System.out.println(a.relativize(b));
+        System.out.println(a.resolve(a.relativize(b)));
+        System.out.println(b.equals(a.resolve(a.relativize(b))));
+        System.out.println();
+        System.out.println(b.relativize(a));
+        System.out.println(b.resolve(b.relativize(a)));
+        System.out.println(a.equals(b.resolve(b.relativize(a))));
+    }
+    
 }
