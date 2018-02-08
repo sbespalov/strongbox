@@ -35,13 +35,13 @@ public class Selector
     }
 
     public Predicate and(Predicate p1,
-                                      Predicate p2)
+                         Predicate p2)
     {
         return p1.and(p2);
     }
 
     public Predicate or(Predicate p1,
-                                     Predicate p2)
+                        Predicate p2)
     {
         return p1.or(p2);
     }
