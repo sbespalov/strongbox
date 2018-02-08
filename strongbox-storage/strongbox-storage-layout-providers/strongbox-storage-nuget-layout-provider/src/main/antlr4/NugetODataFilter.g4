@@ -12,15 +12,13 @@ filter
 filterExp
 :
     '(' filterExp ')'
-    | vFilterExpLeft = filterExp vLogicalOp = logicalOp vFilterExpRight =
-    filterExp
+    | vFilterExpLeft = filterExp vLogicalOp = logicalOp vFilterExpRight = filterExp
     | tokenExp
 ;
 
 tokenExp
 :
-    vTokenExpLeft = tokenExpLeft vFilterOp = filterOp vTokenExpRight =
-    tokenExpRight
+    vTokenExpLeft = tokenExpLeft vFilterOp = filterOp vTokenExpRight = tokenExpRight
     | TAG
 ;
 

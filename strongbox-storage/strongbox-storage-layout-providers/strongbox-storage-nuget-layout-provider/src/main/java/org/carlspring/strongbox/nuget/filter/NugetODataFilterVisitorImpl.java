@@ -40,6 +40,7 @@ public class NugetODataFilterVisitorImpl extends NugetODataFilterBaseVisitor<Rep
 
     private void trace(ParserRuleContext ctx)
     {
+        System.out.println();
         System.out.println(ctx.getClass().getSimpleName());
         System.out.println(ctx.getText());
     }
