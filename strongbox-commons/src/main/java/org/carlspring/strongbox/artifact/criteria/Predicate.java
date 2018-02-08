@@ -5,6 +5,10 @@ import java.util.List;
 
 import org.springframework.util.Assert;
 
+/**
+ * @author sbespalov
+ *
+ */
 public class Predicate
 {
 
@@ -64,4 +68,5 @@ public class Predicate
     {
         AND, OR
     }
+    
 }

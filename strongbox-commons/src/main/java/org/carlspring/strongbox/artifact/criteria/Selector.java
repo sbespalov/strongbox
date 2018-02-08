@@ -1,5 +1,9 @@
 package org.carlspring.strongbox.artifact.criteria;
 
+/**
+ * @author sbespalov
+ *
+ */
 public class Selector
 {
 

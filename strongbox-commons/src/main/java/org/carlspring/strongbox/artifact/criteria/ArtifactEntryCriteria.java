@@ -5,6 +5,10 @@ import java.util.Set;
 
 import org.carlspring.strongbox.artifact.ArtifactTag;
 
+/**
+ * @author sbespalov
+ *
+ */
 public class ArtifactEntryCriteria
 {
 
