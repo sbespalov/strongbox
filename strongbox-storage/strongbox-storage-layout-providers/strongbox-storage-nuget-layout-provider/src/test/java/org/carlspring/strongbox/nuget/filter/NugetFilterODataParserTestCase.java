@@ -11,10 +11,10 @@ import org.junit.runner.RunWith;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = NugetLayoutProviderTestConfig.class)
+//@RunWith(SpringJUnit4ClassRunner.class)
+//@ContextConfiguration(classes = NugetLayoutProviderTestConfig.class)
 public class NugetFilterODataParserTestCase
-        extends TestCaseWithNugetPackageGeneration
+        //extends TestCaseWithNugetPackageGeneration
 {
 
     @Test
