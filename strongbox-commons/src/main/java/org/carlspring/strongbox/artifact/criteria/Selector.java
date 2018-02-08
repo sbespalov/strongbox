@@ -23,13 +23,13 @@ public class Selector
         return this;
     }
 
-    public Selector where(ArtefactEntryCriteria c)
+    public Selector where(ArtifactEntryCriteria c)
     {
         this.predicate = new Predicate().eq(c);
         return this;
     }
 
-    public Predicate eq(ArtefactEntryCriteria c)
+    public Predicate eq(ArtifactEntryCriteria c)
     {
         return new Predicate().eq(c);
     }

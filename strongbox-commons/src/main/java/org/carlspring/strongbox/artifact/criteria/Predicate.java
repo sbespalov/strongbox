@@ -8,7 +8,7 @@ import org.springframework.util.Assert;
 public class Predicate
 {
 
-    private ArtefactEntryCriteria criteria;
+    private ArtifactEntryCriteria criteria;
 
     private BooleanOperator operator = BooleanOperator.AND;
 
@@ -19,7 +19,7 @@ public class Predicate
         super();
     }
 
-    public ArtefactEntryCriteria getCriteria()
+    public ArtifactEntryCriteria getCriteria()
     {
         return criteria;
     }
@@ -34,7 +34,7 @@ public class Predicate
         return predicate;
     }
 
-    public Predicate eq(ArtefactEntryCriteria c)
+    public Predicate eq(ArtifactEntryCriteria c)
     {
         this.criteria = c;
         return this;

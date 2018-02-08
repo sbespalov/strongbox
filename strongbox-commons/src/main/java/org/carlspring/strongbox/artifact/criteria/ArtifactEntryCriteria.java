@@ -5,7 +5,7 @@ import java.util.Set;
 
 import org.carlspring.strongbox.artifact.ArtifactTag;
 
-public class ArtefactEntryCriteria
+public class ArtifactEntryCriteria
 {
 
     private String storageId;
