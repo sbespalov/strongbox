@@ -54,7 +54,7 @@ public class Predicate
     {
         Assert.state(!BooleanOperator.OR.equals(this.operator), "Only conjunction allowed.");
 
-        this.operator = BooleanOperator.OR;
+        this.operator = BooleanOperator.AND;
         this.predicate.add(p);
 
         return this;
