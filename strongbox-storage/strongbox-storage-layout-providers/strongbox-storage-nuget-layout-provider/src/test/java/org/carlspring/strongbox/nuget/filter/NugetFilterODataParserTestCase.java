@@ -29,7 +29,9 @@ public class NugetFilterODataParserTestCase
 
         NugetODataFilterParser.FilterContext fileContext = parser.filter();
         NugetODataFilterVisitor<Predicate<ArtifactEntryCriteria>> visitor = new NugetODataFilterVisitorImpl(predicate);
-        visitor.visitFilter(fileContext);
+        Predicate<ArtifactEntryCriteria> result = visitor.visitFilter(fileContext);
+        
+        System.out.println(result);
     }
 
 }

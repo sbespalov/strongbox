@@ -1,9 +1,9 @@
 package org.carlspring.strongbox.artifact.criteria;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
-import org.carlspring.strongbox.artifact.ArtifactTag;
 
 /**
  * @author sbespalov
@@ -14,8 +14,8 @@ public class ArtifactEntryCriteria
 
     private String storageId;
     private String repositoryId;
-    private Map<String, String> coordinates;
-    private Set<ArtifactTag> tagSet;
+    private Map<String, String> coordinates = new HashMap<>();
+    private Set<String> tagSet = new HashSet<>();
 
     public String getStorageId()
     {
@@ -47,12 +47,12 @@ public class ArtifactEntryCriteria
         this.coordinates = coordinates;
     }
 
-    public Set<ArtifactTag> getTagSet()
+    public Set<String> getTagSet()
     {
         return tagSet;
     }
 
-    public void setTagSet(Set<ArtifactTag> tagSet)
+    public void setTagSet(Set<String> tagSet)
     {
         this.tagSet = tagSet;
     }

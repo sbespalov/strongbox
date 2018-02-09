@@ -14,7 +14,7 @@ public class Predicate<T>
 
     private T criteria;
 
-    private BooleanOperator operator = BooleanOperator.AND;
+    private BooleanOperator operator;
 
     private List<Predicate<T>> predicate = new ArrayList<>();
 

@@ -1,6 +1,11 @@
 package org.carlspring.strongbox.nuget.filter;
 
+import java.util.Optional;
+
+import javax.persistence.criteria.Predicate.BooleanOperator;
+
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.carlspring.strongbox.artifact.ArtifactTag;
 import org.carlspring.strongbox.artifact.criteria.ArtifactEntryCriteria;
 import org.carlspring.strongbox.data.criteria.Predicate;
 import org.carlspring.strongbox.nuget.filter.NugetODataFilterParser.FilterContext;
@@ -19,12 +24,12 @@ import org.carlspring.strongbox.nuget.filter.NugetODataFilterParser.TokenExpRigh
 public class NugetODataFilterVisitorImpl extends NugetODataFilterBaseVisitor<Predicate<ArtifactEntryCriteria>>
 {
 
-    private Predicate<ArtifactEntryCriteria> c;
+    private Predicate<ArtifactEntryCriteria> root;
 
-    public NugetODataFilterVisitorImpl(Predicate<ArtifactEntryCriteria> c)
+    public NugetODataFilterVisitorImpl(Predicate<ArtifactEntryCriteria> p)
     {
         super();
-        this.c = c;
+        this.root = p;
     }
 
     @Override
@@ -39,17 +44,28 @@ public class NugetODataFilterVisitorImpl extends NugetODataFilterBaseVisitor<Pre
     {
         if (ctx.tokenExp() != null)
         {
-            return visitChildren(ctx.tokenExp());
+            return visitTokenExp(ctx.tokenExp());
         }
         else if (ctx.vNesteedFilterExp != null)
         {
-            return visitChildren(ctx.vNesteedFilterExp);
+            return visitFilterExp(ctx.vNesteedFilterExp);
         }
 
-        visitChildren(ctx.vFilterExpLeft);
-        visitChildren(ctx.vFilterExpRight);
-        
-        return super.visitFilterExp(ctx);
+        BooleanOperator booleanOperator = BooleanOperator.valueOf(ctx.vLogicalOp.getText().toUpperCase());
+
+        Predicate<ArtifactEntryCriteria> p1 = visitFilterExp(ctx.vFilterExpLeft);
+        Predicate<ArtifactEntryCriteria> p2 = visitFilterExp(ctx.vFilterExpRight);
+
+        if (BooleanOperator.AND.equals(booleanOperator))
+        {
+            return p1.and(p2);
+        }
+        else if (BooleanOperator.OR.equals(booleanOperator))
+        {
+            return p1.or(p2);
+        }
+
+        return null;
     }
 
     private void trace(ParserRuleContext ctx)
@@ -63,7 +79,23 @@ public class NugetODataFilterVisitorImpl extends NugetODataFilterBaseVisitor<Pre
     public Predicate<ArtifactEntryCriteria> visitTokenExp(TokenExpContext ctx)
     {
         trace(ctx);
-        return super.visitTokenExp(ctx);
+        if (ctx.TAG() != null)
+        {
+            ArtifactEntryCriteria c = new ArtifactEntryCriteria();
+            c.getTagSet().add(ArtifactTag.LAST_VERSION);
+
+            Predicate<ArtifactEntryCriteria> p = new Predicate<>();
+            p.eq(c);
+
+            return p;
+        }
+
+        Predicate<ArtifactEntryCriteria> p = visitTokenExpLeft(ctx.vTokenExpLeft);
+
+        String attributeValue = ctx.vTokenExpRight.getText();
+        p.getCriteria().getCoordinates().entrySet().stream().findFirst().map(e -> e.setValue(attributeValue));
+
+        return p;
     }
 
     @Override
@@ -77,7 +109,14 @@ public class NugetODataFilterVisitorImpl extends NugetODataFilterBaseVisitor<Pre
     public Predicate<ArtifactEntryCriteria> visitTokenExpLeft(TokenExpLeftContext ctx)
     {
         trace(ctx);
-        return super.visitTokenExpLeft(ctx);
+
+        ArtifactEntryCriteria c = new ArtifactEntryCriteria();
+        Predicate<ArtifactEntryCriteria> p = new Predicate<ArtifactEntryCriteria>().eq(c);
+
+        String attribute = ctx.ATTRIBUTE().getText();
+        Optional.of(attribute).map(a -> c.getCoordinates().put(a, null));
+
+        return p;
     }
 
     @Override
