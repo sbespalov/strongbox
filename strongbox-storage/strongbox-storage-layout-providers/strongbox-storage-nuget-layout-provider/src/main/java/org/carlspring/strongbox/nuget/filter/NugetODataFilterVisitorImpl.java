@@ -58,14 +58,14 @@ public class NugetODataFilterVisitorImpl extends NugetODataFilterBaseVisitor<Pre
 
         if (BooleanOperator.AND.equals(booleanOperator))
         {
-            return p1.and(p2);
+            root.and(p1).and(p2);
         }
         else if (BooleanOperator.OR.equals(booleanOperator))
         {
-            return p1.or(p2);
+            root.and(p1.or(p2));
         }
 
-        return null;
+        return root;
     }
 
     private void trace(ParserRuleContext ctx)

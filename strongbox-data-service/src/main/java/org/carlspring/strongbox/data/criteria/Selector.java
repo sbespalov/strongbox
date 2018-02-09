@@ -44,7 +44,7 @@ public class Selector<T>
 
     public Predicate<T> where()
     {
-        return this.predicate = new Predicate<T>();
+        return this.predicate = Predicate.root();
     }
 
     public Predicate<T> eq(T c)

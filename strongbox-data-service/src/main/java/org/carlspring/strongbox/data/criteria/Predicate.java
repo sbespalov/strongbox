@@ -16,7 +16,7 @@ public class Predicate<T>
 
     private BooleanOperator operator;
 
-    private List<Predicate<T>> predicate = new ArrayList<>();
+    private List<Predicate<T>> expression = new ArrayList<>();
 
     public Predicate()
     {
@@ -35,7 +35,7 @@ public class Predicate<T>
 
     public List<Predicate<T>> getPredicate()
     {
-        return predicate;
+        return expression;
     }
 
     public Predicate<T> eq(T c)
@@ -49,7 +49,7 @@ public class Predicate<T>
         Assert.state(!BooleanOperator.AND.equals(this.operator), "Only disjunction allowed.");
 
         this.operator = BooleanOperator.OR;
-        this.predicate.add(p);
+        add(p);
 
         return this;
     }
@@ -59,14 +59,30 @@ public class Predicate<T>
         Assert.state(!BooleanOperator.OR.equals(this.operator), "Only conjunction allowed.");
 
         this.operator = BooleanOperator.AND;
-        this.predicate.add(p);
+        add(p);
 
         return this;
+    }
+
+    private void add(Predicate<T> p)
+    {
+        if (p == this)
+        {
+            return;
+        }
+        this.expression.add(p);
+    }
+
+    public static <T> Predicate<T> root()
+    {
+        Predicate<T> p = new Predicate<T>();
+        p.operator = BooleanOperator.AND;
+        return p;
     }
 
     public static enum BooleanOperator
     {
         AND, OR
     }
-    
+
 }
