@@ -1,6 +1,8 @@
 package org.carlspring.strongbox.nuget.filter;
 
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.carlspring.strongbox.artifact.criteria.ArtifactEntryCriteria;
+import org.carlspring.strongbox.data.criteria.Predicate;
 import org.carlspring.strongbox.nuget.filter.NugetODataFilterParser.FilterContext;
 import org.carlspring.strongbox.nuget.filter.NugetODataFilterParser.FilterExpContext;
 import org.carlspring.strongbox.nuget.filter.NugetODataFilterParser.FilterOpContext;
@@ -9,30 +11,31 @@ import org.carlspring.strongbox.nuget.filter.NugetODataFilterParser.TokenExpCont
 import org.carlspring.strongbox.nuget.filter.NugetODataFilterParser.TokenExpFunctionContext;
 import org.carlspring.strongbox.nuget.filter.NugetODataFilterParser.TokenExpLeftContext;
 import org.carlspring.strongbox.nuget.filter.NugetODataFilterParser.TokenExpRightContext;
-import org.carlspring.strongbox.providers.repository.RepositorySearchRequest;
 
-import com.mchange.v2.sql.filter.SynchronizedFilterDataSource;
-
-public class NugetODataFilterVisitorImpl extends NugetODataFilterBaseVisitor<RepositorySearchRequest>
+/**
+ * @author sbespalov
+ *
+ */
+public class NugetODataFilterVisitorImpl extends NugetODataFilterBaseVisitor<Predicate<ArtifactEntryCriteria>>
 {
 
-    private RepositorySearchRequest repositorySearchRequest;
+    private Predicate<ArtifactEntryCriteria> c;
 
-    public NugetODataFilterVisitorImpl(RepositorySearchRequest repositorySearchRequest)
+    public NugetODataFilterVisitorImpl(Predicate<ArtifactEntryCriteria> c)
     {
         super();
-        this.repositorySearchRequest = repositorySearchRequest;
+        this.c = c;
     }
 
     @Override
-    public RepositorySearchRequest visitFilter(FilterContext ctx)
+    public Predicate<ArtifactEntryCriteria> visitFilter(FilterContext ctx)
     {
         trace(ctx);
         return super.visitFilter(ctx);
     }
 
     @Override
-    public RepositorySearchRequest visitFilterExp(FilterExpContext ctx)
+    public Predicate<ArtifactEntryCriteria> visitFilterExp(FilterExpContext ctx)
     {
         trace(ctx);
         return super.visitFilterExp(ctx);
@@ -46,42 +49,42 @@ public class NugetODataFilterVisitorImpl extends NugetODataFilterBaseVisitor<Rep
     }
 
     @Override
-    public RepositorySearchRequest visitTokenExp(TokenExpContext ctx)
+    public Predicate<ArtifactEntryCriteria> visitTokenExp(TokenExpContext ctx)
     {
         trace(ctx);
         return super.visitTokenExp(ctx);
     }
 
     @Override
-    public RepositorySearchRequest visitTokenExpRight(TokenExpRightContext ctx)
+    public Predicate<ArtifactEntryCriteria> visitTokenExpRight(TokenExpRightContext ctx)
     {
         trace(ctx);
         return super.visitTokenExpRight(ctx);
     }
 
     @Override
-    public RepositorySearchRequest visitTokenExpLeft(TokenExpLeftContext ctx)
+    public Predicate<ArtifactEntryCriteria> visitTokenExpLeft(TokenExpLeftContext ctx)
     {
         trace(ctx);
         return super.visitTokenExpLeft(ctx);
     }
 
     @Override
-    public RepositorySearchRequest visitTokenExpFunction(TokenExpFunctionContext ctx)
+    public Predicate<ArtifactEntryCriteria> visitTokenExpFunction(TokenExpFunctionContext ctx)
     {
         trace(ctx);
         return super.visitTokenExpFunction(ctx);
     }
 
     @Override
-    public RepositorySearchRequest visitFilterOp(FilterOpContext ctx)
+    public Predicate<ArtifactEntryCriteria> visitFilterOp(FilterOpContext ctx)
     {
         trace(ctx);
         return super.visitFilterOp(ctx);
     }
 
     @Override
-    public RepositorySearchRequest visitLogicalOp(LogicalOpContext ctx)
+    public Predicate<ArtifactEntryCriteria> visitLogicalOp(LogicalOpContext ctx)
     {
         trace(ctx);
         return super.visitLogicalOp(ctx);

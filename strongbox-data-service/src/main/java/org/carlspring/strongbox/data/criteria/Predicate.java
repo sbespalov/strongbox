@@ -1,4 +1,4 @@
-package org.carlspring.strongbox.artifact.criteria;
+package org.carlspring.strongbox.data.criteria;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,21 +9,21 @@ import org.springframework.util.Assert;
  * @author sbespalov
  *
  */
-public class Predicate
+public class Predicate<T>
 {
 
-    private ArtifactEntryCriteria criteria;
+    private T criteria;
 
     private BooleanOperator operator = BooleanOperator.AND;
 
-    private List<Predicate> predicate = new ArrayList<>();
+    private List<Predicate<T>> predicate = new ArrayList<>();
 
     public Predicate()
     {
         super();
     }
 
-    public ArtifactEntryCriteria getCriteria()
+    public T getCriteria()
     {
         return criteria;
     }
@@ -33,18 +33,18 @@ public class Predicate
         return operator;
     }
 
-    public List<Predicate> getPredicate()
+    public List<Predicate<T>> getPredicate()
     {
         return predicate;
     }
 
-    public Predicate eq(ArtifactEntryCriteria c)
+    public Predicate<T> eq(T c)
     {
         this.criteria = c;
         return this;
     }
 
-    public Predicate or(Predicate p)
+    public Predicate<T> or(Predicate<T> p)
     {
         Assert.state(!BooleanOperator.AND.equals(this.operator), "Only disjunction allowed.");
 
@@ -54,7 +54,7 @@ public class Predicate
         return this;
     }
 
-    public Predicate and(Predicate p)
+    public Predicate<T> and(Predicate<T> p)
     {
         Assert.state(!BooleanOperator.OR.equals(this.operator), "Only conjunction allowed.");
 

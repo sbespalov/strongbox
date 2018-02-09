@@ -3,31 +3,32 @@ package org.carlspring.strongbox.nuget.filter;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CodePointCharStream;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.carlspring.strongbox.config.NugetLayoutProviderTestConfig;
-import org.carlspring.strongbox.providers.repository.RepositorySearchRequest;
-import org.carlspring.strongbox.testing.TestCaseWithNugetPackageGeneration;
+import org.carlspring.strongbox.artifact.criteria.ArtifactEntryCriteria;
+import org.carlspring.strongbox.data.criteria.Predicate;
+import org.carlspring.strongbox.data.criteria.Selector;
+import org.carlspring.strongbox.domain.ArtifactEntry;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-//@RunWith(SpringJUnit4ClassRunner.class)
-//@ContextConfiguration(classes = NugetLayoutProviderTestConfig.class)
+// @RunWith(SpringJUnit4ClassRunner.class)
+// @ContextConfiguration(classes = NugetLayoutProviderTestConfig.class)
 public class NugetFilterODataParserTestCase
-        //extends TestCaseWithNugetPackageGeneration
+// extends TestCaseWithNugetPackageGeneration
 {
 
     @Test
     public void testParseFilter()
         throws Exception
     {
+        Selector<ArtifactEntryCriteria> selector = new Selector<>(ArtifactEntry.class);
+        Predicate<ArtifactEntryCriteria> predicate = selector.where();
+
         CodePointCharStream is = CharStreams.fromString("tolower(Id) eq 'org.carlspring.strongbox.nuget.test.lastversion' and IsLatestVersion and Version eq '1.0.0'");
         NugetODataFilterLexer lexer = new NugetODataFilterLexer(is);
         CommonTokenStream commonTokenStream = new CommonTokenStream(lexer);
         NugetODataFilterParser parser = new NugetODataFilterParser(commonTokenStream);
 
         NugetODataFilterParser.FilterContext fileContext = parser.filter();
-        NugetODataFilterVisitor<RepositorySearchRequest> visitor = new NugetODataFilterVisitorImpl(new RepositorySearchRequest(null, null));
+        NugetODataFilterVisitor<Predicate<ArtifactEntryCriteria>> visitor = new NugetODataFilterVisitorImpl(predicate);
         visitor.visitFilter(fileContext);
     }
 

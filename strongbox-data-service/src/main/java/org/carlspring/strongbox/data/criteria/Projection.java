@@ -1,4 +1,4 @@
-package org.carlspring.strongbox.artifact.criteria;
+package org.carlspring.strongbox.data.criteria;
 
 /**
  * @author sbespalov
