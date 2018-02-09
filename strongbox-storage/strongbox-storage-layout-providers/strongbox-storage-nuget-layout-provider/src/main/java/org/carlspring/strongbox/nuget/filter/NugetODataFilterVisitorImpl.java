@@ -37,7 +37,18 @@ public class NugetODataFilterVisitorImpl extends NugetODataFilterBaseVisitor<Pre
     @Override
     public Predicate<ArtifactEntryCriteria> visitFilterExp(FilterExpContext ctx)
     {
-        trace(ctx);
+        if (ctx.tokenExp() != null)
+        {
+            return visitChildren(ctx.tokenExp());
+        }
+        else if (ctx.vNesteedFilterExp != null)
+        {
+            return visitChildren(ctx.vNesteedFilterExp);
+        }
+
+        visitChildren(ctx.vFilterExpLeft);
+        visitChildren(ctx.vFilterExpRight);
+        
         return super.visitFilterExp(ctx);
     }
 

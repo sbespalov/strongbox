@@ -11,7 +11,7 @@ filter
 
 filterExp
 :
-    '(' filterExp ')'
+    '(' vNesteedFilterExp = filterExp ')'
     | vFilterExpLeft = filterExp vLogicalOp = logicalOp vFilterExpRight = filterExp
     | tokenExp
 ;
