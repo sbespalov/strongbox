@@ -27,6 +27,15 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 
+/**
+ * 
+ * nmp URL examples:
+ * - https://registry.npmjs.org/redux/-/redux-4.0.0.tgz
+ * - https://registry.npmjs.org/@ibm/type/-/type-0.5.4.tgz
+ * 
+ * @author sbespalov
+ *
+ */
 @IntegrationTest
 @RunWith(SpringJUnit4ClassRunner.class)
 public class NpmArtifactControllerTest extends NpmRepositoryTestCase
