@@ -10,6 +10,8 @@ import org.carlspring.strongbox.storage.repository.RepositoryPolicyEnum;
 import org.carlspring.strongbox.testing.NpmRepositoryTestCase;
 
 import javax.inject.Inject;
+
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashSet;
@@ -41,7 +43,6 @@ public class NpmArtifactControllerTest extends NpmRepositoryTestCase
     @Qualifier("contextBaseUrl")
     private String contextBaseUrl;
 
-
     @BeforeClass
     public static void cleanUp()
         throws Exception
@@ -71,7 +72,7 @@ public class NpmArtifactControllerTest extends NpmRepositoryTestCase
     }
 
     @Test
-    public void testPackageCommonFlow()
+    public void testPackageWithScopeShouldBeResolvableAfterUpload()
         throws Exception
     {
         NpmArtifactCoordinates coordinates = NpmArtifactCoordinates.of("@carlspring/npm-test-release", "1.0.0");
@@ -79,6 +80,45 @@ public class NpmArtifactControllerTest extends NpmRepositoryTestCase
         Path publishJsonPath = packageGenerator.of(coordinates).buildPublishJson();
         Path packagePath = packageGenerator.getPackagePath();
 
+        uploadPackage(coordinates, publishJsonPath);
+
+        downloadPackage(coordinates, packagePath);
+    }
+
+    @Test
+    public void testPackageWithoutScopeShouldBeResolvableAfterUpload()
+        throws Exception
+    {
+        NpmArtifactCoordinates coordinates = NpmArtifactCoordinates.of("npm-test-release", "1.0.0");
+        NpmPackageGenerator packageGenerator = NpmPackageGenerator.newInstance();
+        Path publishJsonPath = packageGenerator.of(coordinates).buildPublishJson();
+        Path packagePath = packageGenerator.getPackagePath();
+
+        uploadPackage(coordinates, publishJsonPath);
+
+        downloadPackage(coordinates, packagePath);
+    }
+
+    private void downloadPackage(NpmArtifactCoordinates coordinates,
+                                 Path packagePath)
+        throws IOException
+    {
+        given().header("User-Agent", "npm/*")
+               .header("Content-Type", "application/json")
+               .when()
+               .get(contextBaseUrl + "/storages/" + STORAGE_ID + "/" + REPOSITORY_RELEASES_1 + "/" +
+                       coordinates.toResource())
+               .peek()
+               .then()
+               .statusCode(HttpStatus.OK.value())
+               .assertThat()
+               .header("Content-Length", equalTo(String.valueOf(Files.size(packagePath))));
+    }
+
+    private void uploadPackage(NpmArtifactCoordinates coordinates,
+                               Path publishJsonPath)
+        throws IOException
+    {
         byte[] publishJsonContent = Files.readAllBytes(publishJsonPath);
 
         given().header("User-Agent", "npm/*")
@@ -86,21 +126,10 @@ public class NpmArtifactControllerTest extends NpmRepositoryTestCase
                .body(publishJsonContent)
                .when()
                .put(contextBaseUrl + "/storages/" + STORAGE_ID + "/" + REPOSITORY_RELEASES_1 + "/" +
-                    coordinates.getId())
+                       coordinates.getId())
                .peek()
                .then()
                .statusCode(HttpStatus.OK.value());
-
-        given().header("User-Agent", "npm/*")
-               .header("Content-Type", "application/json")
-               .when()
-               .get(contextBaseUrl + "/storages/" + STORAGE_ID + "/" + REPOSITORY_RELEASES_1 + "/" +
-                    coordinates.toResource())
-               .peek()
-               .then()
-               .statusCode(HttpStatus.OK.value())
-               .assertThat()
-               .header("Content-Length", equalTo(String.valueOf(Files.size(packagePath))));
     }
 
 }
