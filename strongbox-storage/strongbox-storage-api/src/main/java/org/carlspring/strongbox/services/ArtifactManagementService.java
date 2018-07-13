@@ -124,8 +124,6 @@ public class ArtifactManagementService
                       InputStream is)
            throws IOException
     {
-        ArtifactStoreResult result;
-        
         repositoryPathLock.lock(repositoryPath);
 
         try
@@ -133,7 +131,7 @@ public class ArtifactManagementService
             TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
             //TODO: implement suspension for HazelcastTransactionManager
             //transactionTemplate.setPropagationBehavior(Propagation.REQUIRES_NEW.value());
-            result = transactionTemplate.execute((s) -> storeInTransaction(repositoryPath, is));
+            return transactionTemplate.execute((s) -> storeInTransaction(repositoryPath, is));
         }
         catch (UndeclaredThrowableException e)
         {
@@ -155,13 +153,9 @@ public class ArtifactManagementService
         {
             repositoryPathLock.unlock(repositoryPath);
         }
-        
-        result.getEvents().stream().forEach(Runnable::run);
-        
-        return result.getSize();
     }
 
-    private ArtifactStoreResult storeInTransaction(RepositoryPath repositoryPath,
+    private long storeInTransaction(RepositoryPath repositoryPath,
                                                    InputStream is)
     {
         try (TempRepositoryPath tempArtifact = RepositoryFiles.temporary(repositoryPath))
@@ -174,7 +168,7 @@ public class ArtifactManagementService
         }
     }
     
-    private ArtifactStoreResult storeInTemp(TempRepositoryPath repositoryPath,
+    private long storeInTemp(TempRepositoryPath repositoryPath,
                                             InputStream is)
         throws IOException
     {
@@ -194,12 +188,11 @@ public class ArtifactManagementService
         }
     }
 
-    private ArtifactStoreResult doStore(RepositoryPath repositoryPath,
-                                        InputStream is)
+    private long doStore(RepositoryPath repositoryPath,
+                         InputStream is)
             throws IOException
     {
-        ArtifactStoreResult result = new ArtifactStoreResult();
-        
+        long result;
         boolean updatedMetadataFile = false;
 
         if (Files.exists(repositoryPath) && RepositoryFiles.isMetadata(repositoryPath))
@@ -209,7 +202,7 @@ public class ArtifactManagementService
         
         try (final RepositoryOutputStream aos = artifactResolutionService.getOutputStream(repositoryPath))
         {
-            result.setSize(storeArtifact(repositoryPath, is, aos));
+            result = storeArtifact(repositoryPath, is, aos);
         }
         catch (IOException e)
         {
@@ -220,11 +213,6 @@ public class ArtifactManagementService
             throw new ArtifactStorageException(e);
         }
         
-        if (RepositoryFiles.isArtifact(repositoryPath))
-        {
-            artifactEventListenerRegistry.dispatchArtifactStoredEvent(repositoryPath);
-        }
-
         if (updatedMetadataFile)
         {
             artifactEventListenerRegistry.dispatchArtifactMetadataFileUpdatedEvent(repositoryPath);
@@ -254,10 +242,6 @@ public class ArtifactManagementService
         if (repository.isHostedRepository())
         {
             artifactEventListenerRegistry.dispatchArtifactUploadingEvent(repositoryPath);
-        }
-        else
-        {
-            artifactEventListenerRegistry.dispatchArtifactDownloadingEvent(repositoryPath);
         }
         
         long totalAmountOfBytes = IOUtils.copy(is, os);

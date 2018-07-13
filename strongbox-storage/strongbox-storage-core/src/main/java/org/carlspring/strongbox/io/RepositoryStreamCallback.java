@@ -9,6 +9,6 @@ public interface RepositoryStreamCallback
 
     void onBeforeWrite(RepositoryStreamContext ctx) throws IOException;
     
-    void onAfterClose(RepositoryStreamContext ctx) throws IOException;
+    void onAfterWrite(RepositoryStreamContext ctx) throws IOException;
 
 }

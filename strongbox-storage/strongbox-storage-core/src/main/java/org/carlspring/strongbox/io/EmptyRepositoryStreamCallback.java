@@ -20,7 +20,7 @@ public class EmptyRepositoryStreamCallback implements RepositoryStreamCallback
     }
 
     @Override
-    public void onAfterClose(RepositoryStreamContext ctx)
+    public void onAfterWrite(RepositoryStreamContext ctx)
         throws IOException
     {
 

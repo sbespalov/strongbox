@@ -75,6 +75,14 @@ public class RepositoryInputStream
         }
     }
 
+    @Override
+    public void close()
+            throws IOException
+    {
+        super.close();
+    }
+
+    
     public long getBytesCount()
     {
         return ((CountingInputStream) this.in).getByteCount();

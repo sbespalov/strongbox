@@ -64,6 +64,9 @@ class ArtifactEntryServiceImpl extends AbstractArtifactEntryService
     public <S extends ArtifactEntry> S save(S entity,
                                             boolean updateLastVersion)
     {
+        
+        logger.info(String.format("Saving [%s]", entity.getArtifactPath()));
+        
         //this needed to update `ArtifactEntry.path` property
         entity.setArtifactCoordinates(entity.getArtifactCoordinates());
 

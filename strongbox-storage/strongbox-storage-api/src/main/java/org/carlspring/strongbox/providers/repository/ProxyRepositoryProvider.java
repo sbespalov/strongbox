@@ -7,7 +7,6 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Optional;
 
 import javax.inject.Inject;
 
@@ -122,13 +121,14 @@ public class ProxyRepositoryProvider
     }
 
     @Override
-    protected ArtifactEntry provideArtifactEntry(RepositoryPath repositoryPath, boolean create, boolean lock) throws IOException
+    protected ArtifactEntry provideArtifactEntry(RepositoryPath repositoryPath, boolean create) throws IOException
     {
-        ArtifactEntry artifactEntry = super.provideArtifactEntry(repositoryPath, create, lock);
+        ArtifactEntry artifactEntry = super.provideArtifactEntry(repositoryPath, create);
         
         if (artifactEntry instanceof RemoteArtifactEntry)
         {
             ((RemoteArtifactEntry) artifactEntry).setIsCached(true);
+            
             return artifactEntry;
         }
         else if (artifactEntry == null)

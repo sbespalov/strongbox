@@ -6,6 +6,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.springframework.context.event.EventListener;
+import org.springframework.core.annotation.AliasFor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -19,5 +21,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 public @interface AsyncEventListener
 {
 
+    @AliasFor(annotation = EventListener.class, attribute = "condition")
+    String condition() default "";
     
 }

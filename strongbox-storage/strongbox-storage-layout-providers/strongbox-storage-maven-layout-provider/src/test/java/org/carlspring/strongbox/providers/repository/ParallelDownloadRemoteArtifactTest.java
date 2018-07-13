@@ -3,6 +3,7 @@ package org.carlspring.strongbox.providers.repository;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.carlspring.strongbox.config.MockedRestArtifactResolverTestConfig;
+import org.carlspring.strongbox.providers.io.RepositoryPath;
 import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Test;
@@ -85,6 +87,10 @@ public class ParallelDownloadRemoteArtifactTest
         assertEquals(concurrency, result.size());
 
         assertArrayEquals(expected, actual);
+        
+        RepositoryPath repositoryPath = repositoryPathResolver.resolve(storageId, repositoryId, path);
+        assertNotNull(repositoryPath.getArtifactEntry());
+        assertEquals(Integer.valueOf(concurrency), repositoryPath.getArtifactEntry().getDownloadCount());
 
     }
 

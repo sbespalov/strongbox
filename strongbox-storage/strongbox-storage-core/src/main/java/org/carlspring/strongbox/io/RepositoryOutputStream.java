@@ -66,7 +66,7 @@ public class RepositoryOutputStream extends FilterOutputStream implements Reposi
         super.close();
         try
         {
-            callback.onAfterClose(this);
+            callback.onAfterWrite(this);
         }
         catch (Exception e)
         {
