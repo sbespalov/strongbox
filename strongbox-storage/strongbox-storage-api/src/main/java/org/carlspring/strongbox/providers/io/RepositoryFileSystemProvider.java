@@ -335,7 +335,7 @@ public abstract class RepositoryFileSystemProvider
 
         Files.move(tempPath.getTarget(), path.getTarget(), StandardCopyOption.REPLACE_EXISTING);
 
-        path.artifactEntry = tempPath.getArtifactEntry();
+        path.artifactEntry = tempPath.artifactEntry;
 
         return path;
     }

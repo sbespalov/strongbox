@@ -18,10 +18,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.security.test.context.support.WithUserDetails;
+import org.springframework.test.annotation.Commit;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
 import static org.mockito.Matchers.any;
 
 /**
@@ -40,7 +44,6 @@ import static org.mockito.Matchers.any;
 @WithUserDetails(value = "admin")
 @TestExecutionListeners(listeners = {RestAssuredTestExecutionListener.class, CacheManagerTestExecutionListener.class},
                         mergeMode = TestExecutionListeners.MergeMode.MERGE_WITH_DEFAULTS)
-@Rollback
 public @interface IntegrationTest
 {
 

@@ -9,6 +9,7 @@ import org.carlspring.strongbox.data.service.EntityLock;
 import org.carlspring.strongbox.domain.ArtifactEntry;
 import org.carlspring.strongbox.event.AsyncEventListener;
 import org.carlspring.strongbox.event.artifact.ArtifactEvent;
+import org.carlspring.strongbox.providers.io.RepositoryFiles;
 import org.carlspring.strongbox.providers.io.RepositoryPath;
 import org.carlspring.strongbox.services.ArtifactEntryService;
 import org.springframework.stereotype.Component;
@@ -57,6 +58,11 @@ public class RepositoryProviderEventListener
     {
         RepositoryPath repositoryPath = (RepositoryPath) event.getPath();
 
+        if (!RepositoryFiles.isArtifact(repositoryPath))
+        {
+            return;
+        }
+        
         ArtifactEntry artifactEntryLock = repositoryPath.getArtifactEntry();
         entityLock.lock(artifactEntryLock);
         try

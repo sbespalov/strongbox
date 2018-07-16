@@ -533,8 +533,7 @@ public class ArtifactManagementServiceImplTest
         random.nextBytes(loremIpsum4ContentArray);
 
         Repository repository = getConfiguration().getStorage(STORAGE0).getRepository(REPOSITORY_WITH_LOCK);
-        RepositoryPath repositoryPath = repositoryPathResolver.resolve(repository).resolve(
-                "org/carlspring/strongbox/locked-artifact/12.2.0.1/locked-artifact-12.2.0.1.pom");
+        RepositoryPath repositoryPath = repositoryPathResolver.resolve(repository, "org/carlspring/strongbox/locked-artifact/12.2.0.1/locked-artifact-12.2.0.1.pom");
 
         List<Callable<Exception>> callables = Arrays.asList(
                 new InvokeStoreCallable(repositoryPath, new ByteArrayInputStream(loremIpsum1ContentArray)),

@@ -31,6 +31,7 @@ import org.carlspring.strongbox.services.support.ArtifactEntrySearchCriteria;
 import org.javatuples.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.interceptor.KeyGenerator;
@@ -58,6 +59,9 @@ class ArtifactEntryServiceImpl extends AbstractArtifactEntryService
 
     @Inject
     private ArtifactTagService artifactTagService;
+    
+    @Inject
+    private CacheManager cacheManager;
     
     @Override
     @CacheEvict(cacheNames = CacheName.Artifact.ARTIFACT_ENTRIES, keyGenerator = ArtifactEntryKeyGenerator.NAME_ARTIFACT_ENTRY_KYE_GENERATOR)
@@ -137,6 +141,9 @@ class ArtifactEntryServiceImpl extends AbstractArtifactEntryService
                                        coordinates.getVersion()));
             entity.getTagSet().add(lastVersionTag);
             lastVersionEntry.getTagSet().remove(lastVersionTag);
+            
+            cacheManager.getCache(CacheName.Artifact.ARTIFACT_ENTRIES).evict(generateKey(lastVersionEntry));
+            
             super.save(lastVersionEntry);
         }
         else
@@ -562,12 +569,9 @@ class ArtifactEntryServiceImpl extends AbstractArtifactEntryService
                                Method method,
                                Object... params)
         {
-            return Optional.ofNullable((ArtifactEntry) params[0])
-                    .map(e -> detach(e))
-                    .map(e -> String.format("%s/%s/%s", e.getStorageId(), e.getRepositoryId(),
-                                            e.getArtifactCoordinates().toPath())
-                                    .toString())
-                    .orElse(null);
+            ArtifactEntry artifactEntry = (ArtifactEntry) params[0];
+            
+            return generateKey(artifactEntry);
         }
 
     }
@@ -579,6 +583,16 @@ class ArtifactEntryServiceImpl extends AbstractArtifactEntryService
         result.setArtifactCoordinates(getDelegate().detachAll(entity.getArtifactCoordinates(), true));
         
         return result;
+    }
+
+    private String generateKey(ArtifactEntry artifactEntry)
+    {
+        return Optional.ofNullable(artifactEntry)
+                .map(e -> detach(e))
+                .map(e -> String.format("%s/%s/%s", e.getStorageId(), e.getRepositoryId(),
+                                        e.getArtifactCoordinates().toPath())
+                                .toString())
+                .orElse(null);
     }
 
     

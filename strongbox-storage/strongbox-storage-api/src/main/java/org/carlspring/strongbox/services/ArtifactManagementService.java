@@ -1,10 +1,26 @@
 package org.carlspring.strongbox.services;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.lang.reflect.UndeclaredThrowableException;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.security.NoSuchAlgorithmException;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.inject.Inject;
+
 import org.apache.commons.io.IOUtils;
 import org.carlspring.commons.io.MultipleDigestInputStream;
 import org.carlspring.strongbox.artifact.coordinates.ArtifactCoordinates;
-import org.carlspring.strongbox.configuration.ConfigurationManager;
 import org.carlspring.strongbox.configuration.Configuration;
+import org.carlspring.strongbox.configuration.ConfigurationManager;
 import org.carlspring.strongbox.domain.ArtifactEntry;
 import org.carlspring.strongbox.event.artifact.ArtifactEventListenerRegistry;
 import org.carlspring.strongbox.io.ArtifactOutputStream;
@@ -27,26 +43,11 @@ import org.carlspring.strongbox.storage.validation.artifact.ArtifactCoordinatesV
 import org.carlspring.strongbox.storage.validation.artifact.ArtifactCoordinatesValidatorRegistry;
 import org.carlspring.strongbox.storage.validation.artifact.version.VersionValidationException;
 import org.carlspring.strongbox.storage.validation.resource.ArtifactOperationsValidator;
-
-import javax.inject.Inject;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.lang.reflect.UndeclaredThrowableException;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.security.NoSuchAlgorithmException;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.FileSystemUtils;
 
@@ -379,6 +380,7 @@ public class ArtifactManagementService
         return configurationManager.getConfiguration();
     }
 
+    @Transactional
     public void delete(RepositoryPath repositoryPath,
                        boolean force)
             throws IOException
