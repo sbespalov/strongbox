@@ -101,6 +101,11 @@ public abstract class AbstractArtifactCoordinates<C extends AbstractArtifactCoor
     @Override
     public int compareTo(C that)
     {
+        if (this == that)
+        {
+            return 0;
+        }
+        
         if (that == null)
         {
             return -1;

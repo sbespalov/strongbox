@@ -4,6 +4,8 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.nio.file.Files;
 
+import org.carlspring.strongbox.domain.ArtifactEntry;
+
 /**
  * The main concept of {@link TempRepositoryPath} is to provide atomacity into
  * artifact files store process. Files stored into temporary location first,
@@ -45,6 +47,13 @@ public class TempRepositoryPath extends RepositoryPath implements Closeable
         result.artifactEntry = path.artifactEntry;
 
         return result;
+    }
+    
+    @Override
+    public ArtifactEntry getArtifactEntry()
+        throws IOException
+    {
+        return tempTarget.getArtifactEntry();
     }
 
     @Override
