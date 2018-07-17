@@ -3,7 +3,7 @@ package org.carlspring.strongbox.providers.io;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.file.Files;
+import java.net.URI;
 import java.nio.file.Path;
 import java.util.Date;
 import java.util.Optional;
@@ -11,6 +11,7 @@ import java.util.Optional;
 import javax.inject.Inject;
 
 import org.apache.commons.io.output.CountingOutputStream;
+import org.carlspring.strongbox.artifact.ArtifactNotFoundException;
 import org.carlspring.strongbox.artifact.coordinates.ArtifactCoordinates;
 import org.carlspring.strongbox.configuration.Configuration;
 import org.carlspring.strongbox.configuration.ConfigurationManager;
@@ -181,7 +182,7 @@ public abstract class AbstractRepositoryProvider implements RepositoryProvider, 
         String storageId = repository.getStorage().getId();
         String repositoryId = repository.getId();
 
-        ArtifactEntry artifactEntry = provideArtifactEntry(repositoryPath, true);
+        ArtifactEntry artifactEntry = provideArtifactEntry(repositoryPath);
         
         if (!shouldStoreArtifactEntry(artifactEntry))
         {
@@ -246,20 +247,20 @@ public abstract class AbstractRepositoryProvider implements RepositoryProvider, 
             return;
         }
 
-        ArtifactEntry artifactEntry = provideArtifactEntry(repositoryPath, false);
-
-        Assert.notNull(artifactEntry,
-                       String.format("Invalid [%s] for [%s]",
-                                     ArtifactEntry.class.getSimpleName(),
-                                     ctx.getPath()));
+        if (RepositoryFiles.artifactDoesNotExist(repositoryPath))
+        {
+            URI artifactResource = RepositoryFiles.resolveResource(repositoryPath);
+            
+            throw new ArtifactNotFoundException(artifactResource);
+        }
         
         artifactEventListenerRegistry.dispatchArtifactDownloadingEvent(repositoryPath);
     }
   
-    protected ArtifactEntry provideArtifactEntry(RepositoryPath repositoryPath, boolean create) throws IOException
+    protected ArtifactEntry provideArtifactEntry(RepositoryPath repositoryPath) throws IOException
     {
         return Optional.ofNullable(repositoryPath.getArtifactEntry())
-                       .orElse(create ? new ArtifactEntry() : null);
+                       .orElse(new ArtifactEntry());
     }
     
     protected boolean shouldStoreArtifactEntry(ArtifactEntry artifactEntry)
