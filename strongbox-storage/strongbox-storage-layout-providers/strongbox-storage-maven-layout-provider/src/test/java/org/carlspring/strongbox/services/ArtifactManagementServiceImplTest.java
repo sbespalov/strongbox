@@ -3,14 +3,18 @@ package org.carlspring.strongbox.services;
 import org.apache.maven.artifact.Artifact;
 import org.carlspring.maven.commons.io.filters.JarFilenameFilter;
 import org.carlspring.maven.commons.util.ArtifactUtils;
+import org.carlspring.strongbox.artifact.ArtifactNotFoundException;
 import org.carlspring.strongbox.client.ArtifactTransportException;
 import org.carlspring.strongbox.config.Maven2LayoutProviderTestConfig;
+import org.carlspring.strongbox.io.RepositoryInputStream;
 import org.carlspring.strongbox.providers.ProviderImplementationException;
+import org.carlspring.strongbox.providers.io.RepositoryFiles;
 import org.carlspring.strongbox.providers.io.RepositoryPath;
 import org.carlspring.strongbox.providers.io.RepositoryPathResolver;
 import org.carlspring.strongbox.providers.layout.Maven2LayoutProvider;
 import org.carlspring.strongbox.repository.MavenRepositoryFeatures;
 import org.carlspring.strongbox.resource.ResourceCloser;
+import org.carlspring.strongbox.storage.ArtifactResolutionException;
 import org.carlspring.strongbox.storage.ArtifactStorageException;
 import org.carlspring.strongbox.storage.repository.MavenRepositoryFactory;
 import org.carlspring.strongbox.storage.repository.MutableRepository;
@@ -33,11 +37,14 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.hamcrest.CoreMatchers;
@@ -517,79 +524,145 @@ public class ArtifactManagementServiceImplTest
     public void storageContentShouldNotBeAffectedByMoreThanOneThreadAtTheSameTime()
             throws Exception
     {
+        int concurrency = Runtime.getRuntime().availableProcessors();
         Random random = new Random();
 
-
-        byte[] loremIpsum1ContentArray = new byte[40000];
-        random.nextBytes(loremIpsum1ContentArray);
-
-        byte[] loremIpsum2ContentArray = new byte[40000];
-        random.nextBytes(loremIpsum2ContentArray);
-
-        byte[] loremIpsum3ContentArray = new byte[40000];
-        random.nextBytes(loremIpsum3ContentArray);
-
-        byte[] loremIpsum4ContentArray = new byte[40000];
-        random.nextBytes(loremIpsum4ContentArray);
-
+        byte[][] loremIpsumContentArray = new byte[concurrency][];
+        for (int i = 0; i < loremIpsumContentArray.length; i++)
+        {
+            random.nextBytes(loremIpsumContentArray[i] = new byte[40000]);
+        }
+        
         Repository repository = getConfiguration().getStorage(STORAGE0).getRepository(REPOSITORY_WITH_LOCK);
         RepositoryPath repositoryPath = repositoryPathResolver.resolve(repository, "org/carlspring/strongbox/locked-artifact/12.2.0.1/locked-artifact-12.2.0.1.pom");
 
-        List<Callable<Exception>> callables = Arrays.asList(
-                new InvokeStoreCallable(repositoryPath, new ByteArrayInputStream(loremIpsum1ContentArray)),
-                new InvokeStoreCallable(repositoryPath, new ByteArrayInputStream(loremIpsum2ContentArray)),
-                new InvokeStoreCallable(repositoryPath, new ByteArrayInputStream(loremIpsum3ContentArray)),
-                new InvokeStoreCallable(repositoryPath, new ByteArrayInputStream(loremIpsum4ContentArray))
-        );
+        
+        List<Long> resultList = IntStream.range(0, concurrency * 2)
+                                         .parallel()
+                                         .mapToObj(i -> getResult(i,
+                                                                  repositoryPath,
+                                                                  loremIpsumContentArray))
+                                         .collect(Collectors.toList());
 
-        // when
-        List<Future<Exception>> exceptions = Executors.newFixedThreadPool(
-                Runtime.getRuntime().availableProcessors()).invokeAll(callables);
-        byte[] repositoryPathContent = Files.readAllBytes(repositoryPath);
-
-        // then
-        assertTrue(Arrays.equals(repositoryPathContent, loremIpsum1ContentArray) ||
-                   Arrays.equals(repositoryPathContent, loremIpsum2ContentArray) ||
-                   Arrays.equals(repositoryPathContent, loremIpsum3ContentArray) ||
-                   Arrays.equals(repositoryPathContent, loremIpsum4ContentArray));
-
-        for (Future<Exception> exceptionFuture : exceptions)
+        for (Long result : resultList)
         {
-            assertTrue(exceptionFuture.isDone());
-            assertThat(exceptionFuture.get(), CoreMatchers.nullValue());
+            assertEquals(Long.valueOf(40000), result);
+        }
+        
+        byte[] repositoryPathContent = Files.readAllBytes(repositoryPath);
+        // then
+        assertTrue(Arrays.stream(loremIpsumContentArray)
+                         .map(c -> Arrays.equals(repositoryPathContent, c))
+                         .reduce((r1,
+                                  r2) -> r1 || r2)
+                         .get());
+
+    }
+
+    private Long getResult(int i,
+                           RepositoryPath repositoryPath,
+                           byte[][] loremIpsumContentArray)
+    {
+        try
+        {
+            Repository repository = repositoryPath.getRepository();
+            String path = RepositoryFiles.relativizePath(repositoryPath);
+
+            return i % 2 == 0
+                    ? new Store(new ByteArrayInputStream(loremIpsumContentArray[i / 2]), repository, path).call()
+                    : new Read(repository, path).call();
+        }
+        catch (IOException e)
+        {
+            return 0L;
         }
     }
 
-    private class InvokeStoreCallable
-            implements Callable<Exception>
+    private class Store implements Callable<Long>
     {
 
-        private final RepositoryPath repositoryPath;
+        private final Repository repository;
+        
+        private final String path;
 
         private final InputStream is;
 
-        private InvokeStoreCallable(final RepositoryPath repositoryPath,
-                                    final InputStream is)
+        private Store(InputStream is,
+                      Repository repository,
+                      String path)
         {
-            this.repositoryPath = repositoryPath;
+            this.path = path;
+            this.repository = repository;
             this.is = is;
         }
 
         @Override
-        public Exception call()
-                throws Exception
+        public Long call()
         {
+            RepositoryPath repositoryPath = repositoryPathResolver.resolve(repository, path);
+            
             try
             {
-                mavenArtifactManagementService.store(repositoryPath, is);
+                return mavenArtifactManagementService.store(repositoryPath, is);
             }
             catch (Exception ex)
             {
-                return ex;
+                return 0L;
             }
-
-            return null;
         }
     }
 
+    private class Read implements Callable<Long>
+    {
+
+        private final Repository repository;
+        private final String path;
+
+        private Read(Repository repository, String path)
+        {
+            this.path = path;
+            this.repository = repository;
+        }
+
+        @Override
+        public Long call()
+        {
+            RepositoryPath repositoryPath = repositoryPathResolver.resolve(repository, path);
+            
+            long result = 0;
+            
+            byte[] buffer = new byte[1024];
+            try (RepositoryInputStream is = artifactResolutionService.getInputStream(repositoryPath))
+            {
+                while (true)
+                {
+                    int n = is.read(buffer);
+                    if (n < 0)
+                    {
+                        break;
+                    }
+                    result += n;
+                }
+            }
+            catch (ArtifactResolutionException | ArtifactNotFoundException e)
+            {
+                try
+                {
+                    Thread.sleep(100);
+                }
+                catch (InterruptedException e1)
+                {
+                    return 0L;
+                }
+                this.call();
+            }
+            catch (Exception ex)
+            {
+                return 0L;
+            }
+
+            return result;
+        }
+    }
+    
 }
