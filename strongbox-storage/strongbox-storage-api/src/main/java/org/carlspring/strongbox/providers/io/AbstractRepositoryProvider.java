@@ -183,7 +183,7 @@ public abstract class AbstractRepositoryProvider implements RepositoryProvider, 
 
         ArtifactEntry artifactEntry = provideArtifactEntry(repositoryPath, true);
         
-        if (artifactEntry.getUuid() != null)
+        if (!shouldStoreArtifactEntry(artifactEntry))
         {
             return;
         }
@@ -228,7 +228,7 @@ public abstract class AbstractRepositoryProvider implements RepositoryProvider, 
         
         artifactEntry.setSizeInBytes(size);
 
-        artifactEntryService.save(artifactEntry, true);
+        storeArtifactEntry(artifactEntry);
         repositoryPath.artifactEntry = null;
         
         artifactEventListenerRegistry.dispatchArtifactStoredEvent(repositoryPath);
@@ -260,6 +260,16 @@ public abstract class AbstractRepositoryProvider implements RepositoryProvider, 
     {
         return Optional.ofNullable(repositoryPath.getArtifactEntry())
                        .orElse(create ? new ArtifactEntry() : null);
+    }
+    
+    protected boolean shouldStoreArtifactEntry(ArtifactEntry artifactEntry)
+    {
+        return artifactEntry.getUuid() == null;
+    }
+    
+    protected void storeArtifactEntry(ArtifactEntry artifactEntry)
+    {
+        artifactEntryService.save(artifactEntry, true);
     }
     
     @Override

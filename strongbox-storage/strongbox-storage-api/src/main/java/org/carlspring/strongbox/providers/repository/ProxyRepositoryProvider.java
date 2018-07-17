@@ -7,6 +7,7 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 
 import javax.inject.Inject;
 
@@ -125,27 +126,30 @@ public class ProxyRepositoryProvider
     {
         ArtifactEntry artifactEntry = super.provideArtifactEntry(repositoryPath, create);
         
-        if (artifactEntry instanceof RemoteArtifactEntry)
-        {
-            ((RemoteArtifactEntry) artifactEntry).setIsCached(true);
-            
-            return artifactEntry;
-        }
-        else if (artifactEntry == null)
+        if (artifactEntry == null)
         {
             return null;
         }
 
-        return artifactEntry.getObjectId() == null ? createCachedRemoteArtifactEntry()
-                : (RemoteArtifactEntry) artifactEntry;
+        return artifactEntry.getObjectId() == null ? new RemoteArtifactEntry() : (RemoteArtifactEntry) artifactEntry;
     }
 
-    private RemoteArtifactEntry createCachedRemoteArtifactEntry()
+    @Override
+    protected boolean shouldStoreArtifactEntry(ArtifactEntry artifactEntry)
     {
-        RemoteArtifactEntry result = new RemoteArtifactEntry();
-        result.setIsCached(Boolean.TRUE);
+        RemoteArtifactEntry remoteArtifactEntry = (RemoteArtifactEntry) artifactEntry;
         
-        return result;
+        return super.shouldStoreArtifactEntry(artifactEntry) || !remoteArtifactEntry.getIsCached();
     }
 
+    @Override
+    protected void storeArtifactEntry(ArtifactEntry artifactEntry)
+    {
+        RemoteArtifactEntry remoteArtifactEntry = (RemoteArtifactEntry) artifactEntry;
+        
+        remoteArtifactEntry.setIsCached(true);
+        
+        super.storeArtifactEntry(artifactEntry);
+    }
+    
 }
