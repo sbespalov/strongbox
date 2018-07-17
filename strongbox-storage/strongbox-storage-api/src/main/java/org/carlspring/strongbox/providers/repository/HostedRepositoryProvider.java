@@ -96,13 +96,13 @@ public class HostedRepositoryProvider extends AbstractRepositoryProvider
         
         QueryTemplate<List<ArtifactEntry>, ArtifactEntry> queryTemplate = new DetachQueryTemplate<>(entityManager);
         
+        RootRepositoryPath rootRepositoryPath = repositoryPathResolver.resolve(repository);
         List<ArtifactEntry> searchResult = queryTemplate.select(selector);
         for (ArtifactEntry artifactEntry : searchResult)
         {
             
             try
             {
-                RootRepositoryPath rootRepositoryPath = repositoryPathResolver.resolve(repository);
                 result.add(rootRepositoryPath.resolve(artifactEntry));
             }
             catch (Exception e)
