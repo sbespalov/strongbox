@@ -4,6 +4,8 @@ import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Path;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
 
 import org.apache.commons.io.output.CountingOutputStream;
 import org.carlspring.strongbox.storage.repository.MutableRepository;
@@ -26,11 +28,22 @@ public class RepositoryOutputStream extends FilterOutputStream implements Reposi
 
     private Path path;
 
+    private ReadWriteLock lock;
+    
     protected RepositoryOutputStream(Path path,
+                                     ReadWriteLock lock,
                                      OutputStream out)
     {
         super(new CountingOutputStream(out));
+        
+        this.lock = lock;
         this.path = path;
+    }
+    
+    @Override
+    public ReadWriteLock getLock()
+    {
+        return lock;
     }
 
     public Path getPath()
@@ -42,12 +55,20 @@ public class RepositoryOutputStream extends FilterOutputStream implements Reposi
     public void write(int b)
             throws IOException
     {
-        CountingOutputStream counting = (CountingOutputStream)out;
+        CountingOutputStream counting = (CountingOutputStream) out;
         if (counting.getByteCount() == 0L)
         {
+            Lock wLock = getLock().writeLock();
+            wLock.lock();
+            
             try
             {
                 callback.onBeforeWrite(this);
+            }
+            catch (IOException e) 
+            {
+                logger.error(String.format("Callback failed for [%s]", path), e);
+                throw e;
             }
             catch (Exception e)
             {
@@ -63,7 +84,21 @@ public class RepositoryOutputStream extends FilterOutputStream implements Reposi
     public void close()
             throws IOException
     {
+        try
+        {
+            doClose();
+        } 
+        finally
+        {
+            getLock().writeLock().unlock();
+        }
+    }
+
+    private void doClose()
+        throws IOException
+    {
         super.close();
+        
         try
         {
             callback.onAfterWrite(this);
@@ -82,13 +117,14 @@ public class RepositoryOutputStream extends FilterOutputStream implements Reposi
     }
 
     public static RepositoryOutputStream of(Path path,
+                                            ReadWriteLock lock,
                                             OutputStream os)
     {
         ArtifactOutputStream source = os instanceof ArtifactOutputStream ? (ArtifactOutputStream) os
                                                                          : StreamUtils.findSource(ArtifactOutputStream.class, os);
         Assert.notNull(source, String.format("Source should be [%s]", ArtifactOutputStream.class.getSimpleName()));
 
-        return new RepositoryOutputStream(path, os);
+        return new RepositoryOutputStream(path, lock, os);
     }
 
 }

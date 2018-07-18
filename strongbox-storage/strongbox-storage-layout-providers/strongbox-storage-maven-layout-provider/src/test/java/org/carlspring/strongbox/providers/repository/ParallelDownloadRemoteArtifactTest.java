@@ -52,7 +52,7 @@ public class ParallelDownloadRemoteArtifactTest
     }
 
     @Test
-    public void resurrectedInputStreamShouldBeSuccessfullyHandledByRetryFeature()
+    public void testConcurrentDownload()
         throws Exception
     {
         int concurrency = Runtime.getRuntime().availableProcessors();
@@ -62,8 +62,7 @@ public class ParallelDownloadRemoteArtifactTest
         final String path = "org/carlspring/properties-injector/1.7/properties-injector-1.7.jar";
         final Path destinationPath = getVaultDirectoryPath().resolve("storages")
                                                             .resolve(storageId)
-                                                            .resolve(
-                                                                     repositoryId)
+                                                            .resolve(repositoryId)
                                                             .resolve(path);
 
         // given

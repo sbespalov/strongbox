@@ -5,6 +5,7 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.util.concurrent.locks.ReadWriteLock;
 
 import org.apache.commons.io.input.CountingInputStream;
 import org.slf4j.Logger;
@@ -21,12 +22,23 @@ public class RepositoryInputStream
     protected RepositoryStreamCallback callback = new EmptyRepositoryStreamCallback();
 
     private Path path;
+    
+    private ReadWriteLock lock;
 
     protected RepositoryInputStream(Path path,
+                                    ReadWriteLock lock,
                                     InputStream in)
     {
         super(new CountingInputStream(in));
+        
         this.path = path;
+        this.lock = lock;
+    }
+
+    @Override
+    public ReadWriteLock getLock()
+    {
+        return lock;
     }
 
     public Path getPath()
@@ -63,6 +75,8 @@ public class RepositoryInputStream
     {
         if (getBytesCount() == 0l)
         {
+            getLock().readLock().lock();
+            
             try
             {
                 callback.onBeforeRead(this);
@@ -79,7 +93,14 @@ public class RepositoryInputStream
     public void close()
             throws IOException
     {
-        super.close();
+        try
+        {
+            super.close();
+        } 
+        finally
+        {
+            getLock().readLock().unlock();
+        }
     }
 
     
@@ -89,13 +110,14 @@ public class RepositoryInputStream
     }
 
     public static RepositoryInputStream of(Path path,
+                                           ReadWriteLock lock,
                                            InputStream is)
     {
         ArtifactInputStream source = is instanceof ArtifactInputStream ? (ArtifactInputStream) is
                 : StreamUtils.findSource(ArtifactInputStream.class, is);
         Assert.notNull(source, String.format("Source should be [%s]", ArtifactInputStream.class.getSimpleName()));
 
-        return new RepositoryInputStream(path, is);
+        return new RepositoryInputStream(path, lock, is);
     }
 
 }

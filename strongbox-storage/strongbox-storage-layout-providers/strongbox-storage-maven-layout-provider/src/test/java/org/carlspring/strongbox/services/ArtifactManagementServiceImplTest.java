@@ -70,6 +70,8 @@ public class ArtifactManagementServiceImplTest
         extends TestCaseWithMavenArtifactGenerationAndIndexing
 {
 
+    private static final int CONTENT_SIZE = 40000;
+
     private static final String REPOSITORY_RELEASES = "amsi-releases";
 
     private static final String REPOSITORY_RELEASES_WITH_TRASH = "amsi-releases-with-trash";
@@ -521,7 +523,7 @@ public class ArtifactManagementServiceImplTest
     }
 
     @Test
-    public void storageContentShouldNotBeAffectedByMoreThanOneThreadAtTheSameTime()
+    public void testConcurrentReadWrite()
             throws Exception
     {
         int concurrency = Runtime.getRuntime().availableProcessors();
@@ -530,13 +532,13 @@ public class ArtifactManagementServiceImplTest
         byte[][] loremIpsumContentArray = new byte[concurrency][];
         for (int i = 0; i < loremIpsumContentArray.length; i++)
         {
-            random.nextBytes(loremIpsumContentArray[i] = new byte[40000]);
+            random.nextBytes(loremIpsumContentArray[i] = new byte[CONTENT_SIZE]);
         }
         
         Repository repository = getConfiguration().getStorage(STORAGE0).getRepository(REPOSITORY_WITH_LOCK);
         RepositoryPath repositoryPath = repositoryPathResolver.resolve(repository, "org/carlspring/strongbox/locked-artifact/12.2.0.1/locked-artifact-12.2.0.1.pom");
 
-        
+        // when
         List<Long> resultList = IntStream.range(0, concurrency * 2)
                                          .parallel()
                                          .mapToObj(i -> getResult(i,
@@ -544,13 +546,13 @@ public class ArtifactManagementServiceImplTest
                                                                   loremIpsumContentArray))
                                          .collect(Collectors.toList());
 
+        // then
         for (Long result : resultList)
         {
-            assertEquals(Long.valueOf(40000), result);
+            assertEquals(Long.valueOf(CONTENT_SIZE), result);
         }
         
         byte[] repositoryPathContent = Files.readAllBytes(repositoryPath);
-        // then
         assertTrue(Arrays.stream(loremIpsumContentArray)
                          .map(c -> Arrays.equals(repositoryPathContent, c))
                          .reduce((r1,
@@ -570,7 +572,7 @@ public class ArtifactManagementServiceImplTest
 
             return i % 2 == 0
                     ? new Store(new ByteArrayInputStream(loremIpsumContentArray[i / 2]), repository, path).call()
-                    : new Read(repository, path).call();
+                    : new Fetch(repository, path).call();
         }
         catch (IOException e)
         {
@@ -612,13 +614,13 @@ public class ArtifactManagementServiceImplTest
         }
     }
 
-    private class Read implements Callable<Long>
+    private class Fetch implements Callable<Long>
     {
 
         private final Repository repository;
         private final String path;
 
-        private Read(Repository repository, String path)
+        private Fetch(Repository repository, String path)
         {
             this.path = path;
             this.repository = repository;
@@ -654,7 +656,7 @@ public class ArtifactManagementServiceImplTest
                 {
                     return 0L;
                 }
-                this.call();
+                return this.call();
             }
             catch (Exception ex)
             {

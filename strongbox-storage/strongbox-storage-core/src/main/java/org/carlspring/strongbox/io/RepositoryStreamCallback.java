@@ -6,7 +6,7 @@ public interface RepositoryStreamCallback
 {
 
     void onBeforeRead(RepositoryStreamContext ctx) throws IOException;
-
+    
     void onBeforeWrite(RepositoryStreamContext ctx) throws IOException;
     
     void onAfterWrite(RepositoryStreamContext ctx) throws IOException;

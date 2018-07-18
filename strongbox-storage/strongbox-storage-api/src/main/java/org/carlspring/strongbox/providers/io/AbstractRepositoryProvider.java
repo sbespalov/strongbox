@@ -66,49 +66,12 @@ public abstract class AbstractRepositoryProvider implements RepositoryProvider, 
     protected ArtifactTagService artifactTagService;
     
     @Inject
-    private ArtifactEventListenerRegistry artifactEventListenerRegistry;
+    protected ArtifactEventListenerRegistry artifactEventListenerRegistry;
+    
+    @Inject
+    protected RepositoryPathLock repositoryPathLock;
 
-    public RepositoryProviderRegistry getRepositoryProviderRegistry()
-    {
-        return repositoryProviderRegistry;
-    }
-
-    public void setRepositoryProviderRegistry(RepositoryProviderRegistry repositoryProviderRegistry)
-    {
-        this.repositoryProviderRegistry = repositoryProviderRegistry;
-    }
-
-    public LayoutProviderRegistry getLayoutProviderRegistry()
-    {
-        return layoutProviderRegistry;
-    }
-
-    public void setLayoutProviderRegistry(LayoutProviderRegistry layoutProviderRegistry)
-    {
-        this.layoutProviderRegistry = layoutProviderRegistry;
-    }
-
-    public StorageProviderRegistry getStorageProviderRegistry()
-    {
-        return storageProviderRegistry;
-    }
-
-    public void setStorageProviderRegistry(StorageProviderRegistry storageProviderRegistry)
-    {
-        this.storageProviderRegistry = storageProviderRegistry;
-    }
-
-    public ConfigurationManager getConfigurationManager()
-    {
-        return configurationManager;
-    }
-
-    public void setConfigurationManager(ConfigurationManager configurationManager)
-    {
-        this.configurationManager = configurationManager;
-    }
-
-    public Configuration getConfiguration()
+    protected Configuration getConfiguration()
     {
         return configurationManager.getConfiguration();
     }
@@ -140,7 +103,7 @@ public abstract class AbstractRepositoryProvider implements RepositoryProvider, 
             return (RepositoryInputStream) is;
         }
 
-        return RepositoryInputStream.of(repositoryPath, is).with(this);
+        return RepositoryInputStream.of(repositoryPath, repositoryPathLock.lock(repositoryPath), is).with(this);
     }
 
     @Override
@@ -164,7 +127,7 @@ public abstract class AbstractRepositoryProvider implements RepositoryProvider, 
             return (RepositoryOutputStream) os;
         }
 
-        return RepositoryOutputStream.of(repositoryPath, os).with(this);
+        return RepositoryOutputStream.of(repositoryPath, repositoryPathLock.lock(repositoryPath), os).with(this);
     }
 
     @Override
@@ -256,7 +219,7 @@ public abstract class AbstractRepositoryProvider implements RepositoryProvider, 
         
         artifactEventListenerRegistry.dispatchArtifactDownloadingEvent(repositoryPath);
     }
-  
+
     protected ArtifactEntry provideArtifactEntry(RepositoryPath repositoryPath) throws IOException
     {
         return Optional.ofNullable(repositoryPath.getArtifactEntry())

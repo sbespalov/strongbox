@@ -4,7 +4,7 @@ import java.io.IOException;
 
 public class EmptyRepositoryStreamCallback implements RepositoryStreamCallback
 {
-
+    
     @Override
     public void onBeforeRead(RepositoryStreamContext ctx)
         throws IOException

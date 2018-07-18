@@ -5,6 +5,7 @@ import java.util.Date;
 
 import javax.inject.Inject;
 
+import org.carlspring.strongbox.config.DataServiceConfig.OrientDBTransactionManager;
 import org.carlspring.strongbox.data.service.EntityLock;
 import org.carlspring.strongbox.domain.ArtifactEntry;
 import org.carlspring.strongbox.event.AsyncEventListener;
@@ -12,8 +13,9 @@ import org.carlspring.strongbox.event.artifact.ArtifactEvent;
 import org.carlspring.strongbox.providers.io.RepositoryFiles;
 import org.carlspring.strongbox.providers.io.RepositoryPath;
 import org.carlspring.strongbox.services.ArtifactEntryService;
+import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
 
 @Component
@@ -27,7 +29,8 @@ public class RepositoryProviderEventListener
     private EntityLock entityLock;
 
     @Inject
-    private PlatformTransactionManager transactionManager;
+    @OrientDBTransactionManager
+    private JpaTransactionManager jpaTransactionManager;
 
     @AsyncEventListener(condition = "#root.event.type == 10")
     public void handleUpdated(final ArtifactEvent<RepositoryPath> event)
@@ -39,14 +42,18 @@ public class RepositoryProviderEventListener
         entityLock.lock(artifactEntryLock);
         try
         {
-            new TransactionTemplate(transactionManager).execute((s) -> {
+            TransactionTemplate transactionTemplate = new TransactionTemplate(jpaTransactionManager);
+            transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+            
+            transactionTemplate.execute((s) -> {
                 ArtifactEntry artifactEntry = artifactEntryService.findOne(artifactEntryLock.getObjectId()).get();
 
                 artifactEntry.setLastUpdated(new Date());
 
                 return artifactEntryService.save(artifactEntry);
             });
-        } finally
+        } 
+        finally
         {
             entityLock.unlock(artifactEntryLock);
         }
@@ -67,7 +74,10 @@ public class RepositoryProviderEventListener
         entityLock.lock(artifactEntryLock);
         try
         {
-            new TransactionTemplate(transactionManager).execute((s) -> {
+            TransactionTemplate transactionTemplate = new TransactionTemplate(jpaTransactionManager);
+            transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+            
+            transactionTemplate.execute((s) -> {
                 ArtifactEntry artifactEntry = artifactEntryService.findOne(artifactEntryLock.getObjectId()).get();
 
                 artifactEntry.setDownloadCount(artifactEntry.getDownloadCount() + 1);
@@ -76,7 +86,8 @@ public class RepositoryProviderEventListener
                 return artifactEntryService.save(artifactEntry);
             });
 
-        } finally
+        } 
+        finally
         {
             entityLock.unlock(artifactEntryLock);
         }

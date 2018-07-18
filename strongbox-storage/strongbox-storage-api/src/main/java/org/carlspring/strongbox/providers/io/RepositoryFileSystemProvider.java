@@ -1,5 +1,6 @@
 package org.carlspring.strongbox.providers.io;
 
+import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -335,7 +336,7 @@ public abstract class RepositoryFileSystemProvider
 
         Files.move(tempPath.getTarget(), path.getTarget(), StandardCopyOption.REPLACE_EXISTING);
 
-        path.artifactEntry = tempPath.artifactEntry;
+        //path.artifactEntry = tempPath.artifactEntry;
 
         return path;
     }
@@ -414,7 +415,9 @@ public abstract class RepositoryFileSystemProvider
                                         OpenOption... options)
         throws IOException
     {
-        return super.newOutputStream(unwrap(path), options);
+        TempRepositoryPath temp = RepositoryFiles.temporary((RepositoryPath) path);
+        
+        return new TempOutputStream(temp, options);
     }
 
     public void copy(Path source,
@@ -611,4 +614,40 @@ public abstract class RepositoryFileSystemProvider
         }
     }
 
+    
+    private class TempOutputStream extends FilterOutputStream
+    {
+
+        private TempRepositoryPath path;
+
+        public TempOutputStream(TempRepositoryPath path,
+                                OpenOption... options)
+            throws IOException
+        {
+            super(RepositoryFileSystemProvider.super.newOutputStream(unwrap(path), options));
+
+            this.path = path;
+        }
+
+        @Override
+        public void close()
+            throws IOException
+        {
+            super.close();
+
+            try
+            {
+                moveFromTemporaryDirectory(path);
+            } 
+            finally
+            {
+                if (Files.exists(path))
+                {
+                    Files.delete(path.getTarget());
+                }
+            }
+        }
+
+    }
+    
 }

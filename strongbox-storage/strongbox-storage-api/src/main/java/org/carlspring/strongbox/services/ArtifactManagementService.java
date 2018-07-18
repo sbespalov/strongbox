@@ -29,7 +29,6 @@ import org.carlspring.strongbox.io.StreamUtils;
 import org.carlspring.strongbox.providers.ProviderImplementationException;
 import org.carlspring.strongbox.providers.io.RepositoryFiles;
 import org.carlspring.strongbox.providers.io.RepositoryPath;
-import org.carlspring.strongbox.providers.io.RepositoryPathLock;
 import org.carlspring.strongbox.providers.io.RepositoryPathResolver;
 import org.carlspring.strongbox.providers.io.TempRepositoryPath;
 import org.carlspring.strongbox.providers.layout.LayoutProviderRegistry;
@@ -87,9 +86,6 @@ public class ArtifactManagementService
     protected RepositoryPathResolver repositoryPathResolver;
 
     @Inject
-    protected RepositoryPathLock repositoryPathLock;
-    
-    @Inject
     private PlatformTransactionManager transactionManager;
 
     public long validateAndStore(RepositoryPath repositoryPath,
@@ -125,8 +121,6 @@ public class ArtifactManagementService
                       InputStream is)
            throws IOException
     {
-        repositoryPathLock.lock(repositoryPath);
-
         try
         {
             TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
@@ -150,30 +144,11 @@ public class ArtifactManagementService
         {
             throw new IOException(e);
         }
-        finally
-        {
-            repositoryPathLock.unlock(repositoryPath);
-        }
     }
 
     private long storeInTransaction(RepositoryPath repositoryPath,
                                                    InputStream is)
     {
-        try (TempRepositoryPath tempArtifact = RepositoryFiles.temporary(repositoryPath))
-        {
-            return storeInTemp(tempArtifact, is);
-        }
-        catch (IOException e)
-        {
-            throw new UndeclaredThrowableException(e);
-        }
-    }
-    
-    private long storeInTemp(TempRepositoryPath repositoryPath,
-                                            InputStream is)
-        throws IOException
-    {
-
         try (// Wrap the InputStream, so we could have checksums to compare
              final InputStream remoteIs = new MultipleDigestInputStream(is))
         {
@@ -181,11 +156,11 @@ public class ArtifactManagementService
         }
         catch (IOException e)
         {
-            throw e;
+            throw new UndeclaredThrowableException(e);
         }
         catch (Exception e)
         {
-            throw new IOException(e);
+            throw new UndeclaredThrowableException(e);
         }
     }
 
