@@ -146,9 +146,9 @@ public class MavenMetadataManager
                          Files.deleteIfExists(metadataPath);
 
                          try (OutputStream os = new MultipleDigestOutputStream(metadataPath,
-                                                                               Files.newOutputStream(metadataPath));
-                              Writer writer = WriterFactory.newXmlWriter(os))
+                                                                               Files.newOutputStream(metadataPath)))
                          {
+                             Writer writer = WriterFactory.newXmlWriter(os);
 
                              MetadataXpp3Writer mappingWriter = new MetadataXpp3Writer();
                              mappingWriter.write(writer, metadata);

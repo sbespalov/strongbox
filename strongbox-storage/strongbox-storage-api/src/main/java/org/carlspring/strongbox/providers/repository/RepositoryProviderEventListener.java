@@ -5,7 +5,6 @@ import java.util.Date;
 
 import javax.inject.Inject;
 
-import org.carlspring.strongbox.config.DataServiceConfig.OrientDBTransactionManager;
 import org.carlspring.strongbox.data.service.EntityLock;
 import org.carlspring.strongbox.domain.ArtifactEntry;
 import org.carlspring.strongbox.event.AsyncEventListener;
@@ -13,9 +12,8 @@ import org.carlspring.strongbox.event.artifact.ArtifactEvent;
 import org.carlspring.strongbox.providers.io.RepositoryFiles;
 import org.carlspring.strongbox.providers.io.RepositoryPath;
 import org.carlspring.strongbox.services.ArtifactEntryService;
-import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 @Component
@@ -29,9 +27,8 @@ public class RepositoryProviderEventListener
     private EntityLock entityLock;
 
     @Inject
-    @OrientDBTransactionManager
-    private JpaTransactionManager jpaTransactionManager;
-
+    private PlatformTransactionManager transactionManager;
+    
     @AsyncEventListener(condition = "#root.event.type == 10")
     public void handleUpdated(final ArtifactEvent<RepositoryPath> event)
         throws IOException
@@ -42,8 +39,7 @@ public class RepositoryProviderEventListener
         entityLock.lock(artifactEntryLock);
         try
         {
-            TransactionTemplate transactionTemplate = new TransactionTemplate(jpaTransactionManager);
-            transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+            TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
             
             transactionTemplate.execute((s) -> {
                 ArtifactEntry artifactEntry = artifactEntryService.findOne(artifactEntryLock.getObjectId()).get();
@@ -74,8 +70,7 @@ public class RepositoryProviderEventListener
         entityLock.lock(artifactEntryLock);
         try
         {
-            TransactionTemplate transactionTemplate = new TransactionTemplate(jpaTransactionManager);
-            transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+            TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
             
             transactionTemplate.execute((s) -> {
                 ArtifactEntry artifactEntry = artifactEntryService.findOne(artifactEntryLock.getObjectId()).get();
