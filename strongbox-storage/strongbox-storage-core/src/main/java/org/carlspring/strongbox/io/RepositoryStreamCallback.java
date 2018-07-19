@@ -11,4 +11,6 @@ public interface RepositoryStreamCallback
     
     void onAfterWrite(RepositoryStreamContext ctx) throws IOException;
 
+    void onAfterRead(RepositoryStreamContext ctx);
+
 }

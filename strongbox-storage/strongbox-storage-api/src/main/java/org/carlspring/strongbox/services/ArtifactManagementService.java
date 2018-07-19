@@ -30,7 +30,6 @@ import org.carlspring.strongbox.providers.ProviderImplementationException;
 import org.carlspring.strongbox.providers.io.RepositoryFiles;
 import org.carlspring.strongbox.providers.io.RepositoryPath;
 import org.carlspring.strongbox.providers.io.RepositoryPathResolver;
-import org.carlspring.strongbox.providers.io.TempRepositoryPath;
 import org.carlspring.strongbox.providers.layout.LayoutProviderRegistry;
 import org.carlspring.strongbox.storage.ArtifactStorageException;
 import org.carlspring.strongbox.storage.Storage;
@@ -45,9 +44,7 @@ import org.carlspring.strongbox.storage.validation.resource.ArtifactOperationsVa
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.FileSystemUtils;
 
 /**
@@ -85,9 +82,6 @@ public class ArtifactManagementService
     @Inject
     protected RepositoryPathResolver repositoryPathResolver;
 
-    @Inject
-    private PlatformTransactionManager transactionManager;
-
     public long validateAndStore(RepositoryPath repositoryPath,
                                  InputStream is)
         throws IOException,
@@ -118,36 +112,7 @@ public class ArtifactManagementService
     }
     
     public long store(RepositoryPath repositoryPath,
-                      InputStream is)
-           throws IOException
-    {
-        try
-        {
-            TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
-            //TODO: implement suspension for HazelcastTransactionManager
-            //transactionTemplate.setPropagationBehavior(Propagation.REQUIRES_NEW.value());
-            return transactionTemplate.execute((s) -> storeInTransaction(repositoryPath, is));
-        }
-        catch (UndeclaredThrowableException e)
-        {
-            Throwable cause = e.getCause();
-            if (cause instanceof IOException)
-            {
-                throw (IOException) cause;
-            }
-            else
-            {
-                throw new IOException(cause);
-            }
-        }
-        catch (Exception e)
-        {
-            throw new IOException(e);
-        }
-    }
-
-    private long storeInTransaction(RepositoryPath repositoryPath,
-                                                   InputStream is)
+                                    InputStream is) throws IOException
     {
         try (// Wrap the InputStream, so we could have checksums to compare
              final InputStream remoteIs = new MultipleDigestInputStream(is))
@@ -156,11 +121,11 @@ public class ArtifactManagementService
         }
         catch (IOException e)
         {
-            throw new UndeclaredThrowableException(e);
+            throw e;
         }
         catch (Exception e)
         {
-            throw new UndeclaredThrowableException(e);
+            throw new IOException(e);
         }
     }
 

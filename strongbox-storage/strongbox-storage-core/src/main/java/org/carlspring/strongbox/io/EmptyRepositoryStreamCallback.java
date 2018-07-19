@@ -26,4 +26,10 @@ public class EmptyRepositoryStreamCallback implements RepositoryStreamCallback
 
     }
 
+    @Override
+    public void onAfterRead(RepositoryStreamContext ctx)
+    {
+        
+    }
+    
 }

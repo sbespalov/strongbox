@@ -7,6 +7,7 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.util.Date;
 import java.util.Optional;
+import java.util.concurrent.locks.ReadWriteLock;
 
 import javax.inject.Inject;
 
@@ -35,13 +36,12 @@ import org.carlspring.strongbox.services.ArtifactTagService;
 import org.carlspring.strongbox.storage.repository.Repository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.Assert;
 
 /**
  * @author carlspring
  */
-@Transactional
 public abstract class AbstractRepositoryProvider implements RepositoryProvider, RepositoryStreamCallback
 {
 
@@ -70,6 +70,9 @@ public abstract class AbstractRepositoryProvider implements RepositoryProvider, 
     
     @Inject
     protected RepositoryPathLock repositoryPathLock;
+    
+    @Inject
+    private PlatformTransactionManager transactionManager;
 
     protected Configuration getConfiguration()
     {
@@ -103,7 +106,8 @@ public abstract class AbstractRepositoryProvider implements RepositoryProvider, 
             return (RepositoryInputStream) is;
         }
 
-        return RepositoryInputStream.of(repositoryPath, repositoryPathLock.lock(repositoryPath), is).with(this);
+        ReadWriteLock lock = repositoryPathLock.lock(repositoryPath);
+        return RepositoryInputStream.of(repositoryPath, lock, transactionManager, is).with(this);
     }
 
     @Override
@@ -127,7 +131,8 @@ public abstract class AbstractRepositoryProvider implements RepositoryProvider, 
             return (RepositoryOutputStream) os;
         }
 
-        return RepositoryOutputStream.of(repositoryPath, repositoryPathLock.lock(repositoryPath), os).with(this);
+        ReadWriteLock lock = repositoryPathLock.lock(repositoryPath);
+        return RepositoryOutputStream.of(repositoryPath, lock, transactionManager, os).with(this);
     }
 
     @Override
@@ -218,6 +223,12 @@ public abstract class AbstractRepositoryProvider implements RepositoryProvider, 
         }
         
         artifactEventListenerRegistry.dispatchArtifactDownloadingEvent(repositoryPath);
+    }
+    
+    @Override
+    public void onAfterRead(RepositoryStreamContext ctx)
+    {
+        
     }
 
     protected ArtifactEntry provideArtifactEntry(RepositoryPath repositoryPath) throws IOException

@@ -12,6 +12,7 @@ import org.carlspring.strongbox.data.criteria.Predicate;
 import org.carlspring.strongbox.io.RepositoryInputStream;
 import org.carlspring.strongbox.io.RepositoryOutputStream;
 import org.carlspring.strongbox.storage.repository.MutableRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * This interface provide functionality to operate with artifact Paths.
@@ -60,6 +61,7 @@ public interface RepositoryProvider
      * @param paginator
      * @return
      */
+    @Transactional
     List<Path> search(String storageId,
                       String repositoryId,
                       Predicate predicate,
@@ -74,6 +76,7 @@ public interface RepositoryProvider
      * @param predicate
      * @return
      */
+    @Transactional
     Long count(String storageId,
                String repositoryId,
                Predicate predicate);
