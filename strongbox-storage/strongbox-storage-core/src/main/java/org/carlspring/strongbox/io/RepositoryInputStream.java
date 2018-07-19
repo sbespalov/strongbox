@@ -1,6 +1,5 @@
 package org.carlspring.strongbox.io;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
@@ -10,12 +9,14 @@ import org.apache.commons.io.input.CountingInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.TransactionSystemException;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.util.Assert;
 
 public class RepositoryInputStream
-        extends BufferedInputStream
+        extends CountingInputStream
         implements RepositoryStreamContext
 {
 
@@ -30,13 +31,15 @@ public class RepositoryInputStream
     private PlatformTransactionManager transactionManager;
 
     private TransactionStatus transactionStatus;
+    
+    private volatile boolean opened = false;
 
     protected RepositoryInputStream(Path path,
                                     ReadWriteLock lock,
                                     PlatformTransactionManager transactionManager,
                                     InputStream in)
     {
-        super(new CountingInputStream(in));
+        super(in);
 
         this.path = path;
         this.lock = lock;
@@ -59,33 +62,22 @@ public class RepositoryInputStream
         this.callback = callback;
         return this;
     }
-
+    
     @Override
-    public synchronized int read(byte[] b,
-                                 int off,
-                                 int len)
+    protected void beforeRead(int n)
         throws IOException
     {
         open();
-        return super.read(b, off, len);
-    }
-
-    @Override
-    public int read()
-        throws IOException
-    {
-        open();
-        return super.read();
     }
 
     private void open()
         throws IOException
     {
-        if (getBytesCount() > 0l)
+        if (opened || getByteCount() > 0l)
         {
             return;
         }
-        
+                
         try
         {
             doOpen();
@@ -108,6 +100,8 @@ public class RepositoryInputStream
 
         getLock().readLock().lock();
 
+        opened = true;
+        
         transactionStatus = transactionManager.getTransaction(new DefaultTransactionDefinition());
 
         callback.onBeforeRead(this);
@@ -115,36 +109,76 @@ public class RepositoryInputStream
 
     @Override
     public void close()
-        throws IOException
+            throws IOException
     {
-        if (getBytesCount() == 0l)
+        try
+        {
+            super.close();
+            
+            if (opened)
+            {
+                doClose();
+            }
+        }
+        catch (IOException e)
+        {
+            logger.error(String.format("Callback failed for [%s]", path), e);
+            rollbackOnException(transactionStatus, e);
+            
+            throw e;
+        }
+        catch (Exception e)
+        {
+            logger.error(String.format("Callback failed for [%s]", path), e);
+            rollbackOnException(transactionStatus, e);
+            
+            throw new IOException(e);
+        }        
+        finally
+        {
+            if (opened)
+            {
+                getLock().writeLock().unlock();
+            }
+        }
+    }
+    
+    private void rollbackOnException(TransactionStatus status, Throwable ex) throws TransactionException 
+    {
+        
+        if (!opened)
         {
             return;
         }
         
-        try
-        {
-            doClose();
-        } 
-        finally
-        {
-            getLock().readLock().unlock();
+        Assert.state(this.transactionManager != null, "No PlatformTransactionManager set");
+
+        logger.debug("Initiating transaction rollback on application exception", ex);
+        try {
+            transactionManager.rollback(status);
+        }
+        catch (TransactionSystemException ex2) {
+            logger.error("Application exception overridden by rollback exception", ex);
+            ex2.initApplicationException(ex);
+            throw ex2;
+        }
+        catch (RuntimeException | Error ex2) {
+            logger.error("Application exception overridden by rollback exception", ex);
+            throw ex2;
         }
     }
-
+    
     private void doClose()
         throws IOException
     {
-        super.close();
-
+        if (!opened)
+        {
+            return;
+        }
+        
         callback.onAfterRead(this);
 
         transactionManager.commit(transactionStatus);
-    }
-
-    public long getBytesCount()
-    {
-        return ((CountingInputStream) this.in).getByteCount();
     }
 
     public static RepositoryInputStream of(Path path,

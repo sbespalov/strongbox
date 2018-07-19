@@ -4,7 +4,7 @@ import org.carlspring.commons.encryption.EncryptionAlgorithmsEnum;
 import org.carlspring.commons.util.MessageDigestUtils;
 import org.carlspring.strongbox.artifact.coordinates.ArtifactCoordinates;
 
-import java.io.BufferedInputStream;
+import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
@@ -28,7 +28,7 @@ import org.apache.commons.codec.digest.MessageDigestAlgorithms;
  * @author mtodorov
  */
 public class ArtifactInputStream
-        extends BufferedInputStream
+        extends FilterInputStream
 {
 
     public static final String[] DEFAULT_ALGORITHMS = { EncryptionAlgorithmsEnum.MD5.getAlgorithm(),

@@ -1,5 +1,7 @@
 package org.carlspring.strongbox.providers.repository;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -65,7 +67,7 @@ public class HostedRepositoryProvider extends AbstractRepositoryProvider
                 
         try
         {
-            return Files.newInputStream(repositoryPath);
+            return new BufferedInputStream(Files.newInputStream(repositoryPath));
         }
         catch (IOException ex)
         {
@@ -78,7 +80,7 @@ public class HostedRepositoryProvider extends AbstractRepositoryProvider
     public OutputStream getOutputStreamInternal(RepositoryPath repositoryPath)
             throws IOException
     {
-        return Files.newOutputStream(repositoryPath);
+        return new BufferedOutputStream(Files.newOutputStream(repositoryPath));
     }
 
     @Override

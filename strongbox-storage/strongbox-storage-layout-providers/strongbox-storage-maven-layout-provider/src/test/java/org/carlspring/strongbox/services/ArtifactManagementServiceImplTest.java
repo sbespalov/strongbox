@@ -619,6 +619,7 @@ public class ArtifactManagementServiceImplTest
 
         private final Repository repository;
         private final String path;
+        private int attempts = 0;
 
         private Fetch(Repository repository, String path)
         {
@@ -656,6 +657,11 @@ public class ArtifactManagementServiceImplTest
                 {
                     return 0L;
                 }
+                
+                if (attempts++ > 3) {
+                    return 0L;
+                }
+                
                 return this.call();
             }
             catch (Exception ex)

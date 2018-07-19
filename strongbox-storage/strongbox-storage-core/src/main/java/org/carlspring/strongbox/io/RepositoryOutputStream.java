@@ -1,6 +1,5 @@
 package org.carlspring.strongbox.io;
 
-import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Path;
@@ -24,7 +23,7 @@ import org.springframework.util.Assert;
  * @author Sergey Bespalov
  *
  */
-public class RepositoryOutputStream extends FilterOutputStream implements RepositoryStreamContext
+public class RepositoryOutputStream extends CountingOutputStream implements RepositoryStreamContext
 {
 
     private static final Logger logger = LoggerFactory.getLogger(RepositoryOutputStream.class);
@@ -39,12 +38,14 @@ public class RepositoryOutputStream extends FilterOutputStream implements Reposi
     
     private TransactionStatus transactionStatus;
     
+    private volatile boolean opened = false;
+    
     protected RepositoryOutputStream(Path path,
                                      ReadWriteLock lock,
                                      PlatformTransactionManager transactionManager,
                                      OutputStream out)
     {
-        super(new CountingOutputStream(out));
+        super(out);
         
         this.lock = lock;
         this.path = path;
@@ -63,42 +64,65 @@ public class RepositoryOutputStream extends FilterOutputStream implements Reposi
     }
 
     @Override
-    public void write(int b)
-            throws IOException
+    public void write(byte[] bts)
+        throws IOException
     {
         open();
         
-        super.write(b);
+        super.write(bts);
+    }
+
+    @Override
+    public void write(int idx)
+        throws IOException
+    {
+        open();
+        
+        super.write(idx);
+    }
+
+    @Override
+    public void write(byte[] bts,
+                      int st,
+                      int end)
+        throws IOException
+    {
+        open();
+        
+        super.write(bts, st, end);
     }
 
     private void open()
         throws IOException
     {
-        CountingOutputStream counting = (CountingOutputStream) out;
-        if (counting.getByteCount() == 0L)
+        if (opened || getByteCount() > 0L)
         {
-            try
-            {
-                doOpen();
-            }
-            catch (IOException e)
-            {
-                logger.error(String.format("Callback failed for [%s]", path), e);
-                throw e;
-            }
-            catch (Exception e)
-            {
-                logger.error(String.format("Callback failed for [%s]", path), e);
-                throw new IOException(e);
-            }
+            return;
+        }
+               
+        try
+        {
+            doOpen();
+        }
+        catch (IOException e)
+        {
+            logger.error(String.format("Callback failed for [%s]", path), e);
+            throw e;
+        }
+        catch (Exception e)
+        {
+            logger.error(String.format("Callback failed for [%s]", path), e);
+            throw new IOException(e);
         }
     }
 
     private void doOpen()
         throws IOException
-    {
+    {        
         Lock wLock = getLock().writeLock();
         wLock.lock();
+     
+        opened = true;
         
         transactionStatus = transactionManager.getTransaction(new DefaultTransactionDefinition());
         
@@ -111,7 +135,12 @@ public class RepositoryOutputStream extends FilterOutputStream implements Reposi
     {
         try
         {
-            doClose();
+            super.close();
+            if (opened)
+            {
+                doClose();
+            }
+            
         }
         catch (IOException e)
         {
@@ -129,21 +158,34 @@ public class RepositoryOutputStream extends FilterOutputStream implements Reposi
         }        
         finally
         {
-            getLock().writeLock().unlock();
+            if (opened)
+            {
+                getLock().writeLock().unlock();
+            }
         }
     }
 
     private void doClose()
         throws IOException
     {
-        super.close();
-        
         callback.onAfterWrite(this);
         
+        if (transactionStatus.isRollbackOnly()) 
+        {
+            throw new IOException(String.format("Transaction for [%s] set to rollback.", getPath()));
+        }
+            
         transactionManager.commit(transactionStatus);
     }
     
-    private void rollbackOnException(TransactionStatus status, Throwable ex) throws TransactionException {
+    private void rollbackOnException(TransactionStatus status, Throwable ex) throws TransactionException 
+    {
+        
+        if (!opened)
+        {
+            return;
+        }
+        
         Assert.state(this.transactionManager != null, "No PlatformTransactionManager set");
 
         logger.debug("Initiating transaction rollback on application exception", ex);
