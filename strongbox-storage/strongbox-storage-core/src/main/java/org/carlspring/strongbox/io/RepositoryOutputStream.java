@@ -32,8 +32,6 @@ public class RepositoryOutputStream extends CountingOutputStream implements Repo
 
     private Path path;
 
-    private ReadWriteLock lock;
-    
     private PlatformTransactionManager transactionManager;
     
     private TransactionStatus transactionStatus;
@@ -47,7 +45,6 @@ public class RepositoryOutputStream extends CountingOutputStream implements Repo
     {
         super(out);
         
-        this.lock = lock;
         this.path = path;
         this.transactionManager = transactionManager;
     }
@@ -55,7 +52,7 @@ public class RepositoryOutputStream extends CountingOutputStream implements Repo
     @Override
     public ReadWriteLock getLock()
     {
-        return lock;
+        return null;
     }
 
     public Path getPath()
@@ -119,9 +116,6 @@ public class RepositoryOutputStream extends CountingOutputStream implements Repo
     private void doOpen()
         throws IOException
     {        
-        Lock wLock = getLock().writeLock();
-        wLock.lock();
-     
         opened = true;
         
         transactionStatus = transactionManager.getTransaction(new DefaultTransactionDefinition());
@@ -156,13 +150,6 @@ public class RepositoryOutputStream extends CountingOutputStream implements Repo
             
             throw new IOException(e);
         }        
-        finally
-        {
-            if (opened)
-            {
-                getLock().writeLock().unlock();
-            }
-        }
     }
 
     private void doClose()

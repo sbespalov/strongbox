@@ -12,6 +12,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.locks.ReadWriteLock;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -29,6 +30,7 @@ import org.carlspring.strongbox.io.StreamUtils;
 import org.carlspring.strongbox.providers.ProviderImplementationException;
 import org.carlspring.strongbox.providers.io.RepositoryFiles;
 import org.carlspring.strongbox.providers.io.RepositoryPath;
+import org.carlspring.strongbox.providers.io.RepositoryPathLock;
 import org.carlspring.strongbox.providers.io.RepositoryPathResolver;
 import org.carlspring.strongbox.providers.layout.LayoutProviderRegistry;
 import org.carlspring.strongbox.storage.ArtifactStorageException;
@@ -81,6 +83,9 @@ public class ArtifactManagementService
 
     @Inject
     protected RepositoryPathResolver repositoryPathResolver;
+    
+    @Inject
+    protected RepositoryPathLock repositoryPathLock;
 
     public long validateAndStore(RepositoryPath repositoryPath,
                                  InputStream is)
@@ -114,6 +119,9 @@ public class ArtifactManagementService
     public long store(RepositoryPath repositoryPath,
                                     InputStream is) throws IOException
     {
+        ReadWriteLock lock = repositoryPathLock.lock(repositoryPath);
+        lock.writeLock().lock();
+        
         try (// Wrap the InputStream, so we could have checksums to compare
              final InputStream remoteIs = new MultipleDigestInputStream(is))
         {
@@ -126,6 +134,10 @@ public class ArtifactManagementService
         catch (Exception e)
         {
             throw new IOException(e);
+        } 
+        finally 
+        {
+            lock.writeLock().unlock();
         }
     }
 
