@@ -13,12 +13,15 @@ import org.carlspring.strongbox.providers.io.RepositoryFiles;
 import org.carlspring.strongbox.providers.io.RepositoryPath;
 import org.carlspring.strongbox.services.ArtifactEntryService;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.orientechnologies.common.concur.ONeedRetryException;
 
 @Component
 public class RepositoryProviderEventListener
 {
+
+    private static final int RETRY_COUNT = 3;
 
     @Inject
     private ArtifactEntryService artifactEntryService;
@@ -26,65 +29,81 @@ public class RepositoryProviderEventListener
     @Inject
     private EntityLock entityLock;
 
-    @Inject
-    private PlatformTransactionManager transactionManager;
-    
     @AsyncEventListener(condition = "#root.event.type == 10")
     public void handleUpdated(final ArtifactEvent<RepositoryPath> event)
         throws IOException
     {
         RepositoryPath repositoryPath = (RepositoryPath) event.getPath();
-
-        ArtifactEntry artifactEntryLock = repositoryPath.getArtifactEntry();
-        entityLock.lock(artifactEntryLock);
-        try
-        {
-            TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
-            
-            transactionTemplate.execute((s) -> {
-                ArtifactEntry artifactEntry = artifactEntryService.findOne(artifactEntryLock.getObjectId()).get();
-
-                artifactEntry.setLastUpdated(new Date());
-
-                return artifactEntryService.save(artifactEntry);
-            });
-        } 
-        finally
-        {
-            entityLock.unlock(artifactEntryLock);
-        }
-    }
-
-    @AsyncEventListener(condition = "#root.event.type == 8")
-    public void handleDownloading(final ArtifactEvent<RepositoryPath> event)
-        throws IOException
-    {
-        RepositoryPath repositoryPath = (RepositoryPath) event.getPath();
-
         if (!RepositoryFiles.isArtifact(repositoryPath))
         {
             return;
         }
-        
-        ArtifactEntry artifactEntryLock = repositoryPath.getArtifactEntry();
-        entityLock.lock(artifactEntryLock);
+
+        ArtifactEntry artifactEntry = repositoryPath.getArtifactEntry();
+        entityLock.lock(artifactEntry);
         try
         {
-            TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
-            
-            transactionTemplate.execute((s) -> {
-                ArtifactEntry artifactEntry = artifactEntryService.findOne(artifactEntryLock.getObjectId()).get();
+
+            for (int i = 0; i < RETRY_COUNT; i++)
+            {
+                artifactEntry = artifactEntryService.findOne(artifactEntry.getObjectId()).get();
+                artifactEntry.setLastUpdated(new Date());
+
+                try
+                {
+                    artifactEntryService.save(artifactEntry);
+                    break;
+                }
+                catch (ONeedRetryException e)
+                {
+                    continue;
+                }
+            }
+        } 
+        finally
+        {
+            entityLock.unlock(artifactEntry);
+        }
+    }
+
+    @AsyncEventListener(condition = "#root.event.type == 8")
+    @Transactional
+    public void handleDownloading(final ArtifactEvent<RepositoryPath> event)
+        throws IOException
+    {
+        RepositoryPath repositoryPath = (RepositoryPath) event.getPath();
+        if (!RepositoryFiles.isArtifact(repositoryPath))
+        {
+            return;
+        }
+
+        ArtifactEntry artifactEntry = repositoryPath.getArtifactEntry();
+        entityLock.lock(artifactEntry);
+        try
+        {
+
+            for (int i = 0; i < RETRY_COUNT; i++)
+            {
+                artifactEntry = artifactEntryService.findOne(artifactEntry.getObjectId()).get();
+                artifactEntry.setLastUpdated(new Date());
 
                 artifactEntry.setDownloadCount(artifactEntry.getDownloadCount() + 1);
                 artifactEntry.setLastUsed(new Date());
 
-                return artifactEntryService.save(artifactEntry);
-            });
-
+                try
+                {
+                    artifactEntryService.save(artifactEntry);
+                    break;
+                }
+                catch (ONeedRetryException e)
+                {
+                    continue;
+                }
+            }
         } 
         finally
         {
-            entityLock.unlock(artifactEntryLock);
+            entityLock.unlock(artifactEntry);
         }
     }
 
