@@ -6,6 +6,7 @@ import org.carlspring.maven.commons.util.ArtifactUtils;
 import org.carlspring.strongbox.artifact.ArtifactNotFoundException;
 import org.carlspring.strongbox.client.ArtifactTransportException;
 import org.carlspring.strongbox.config.Maven2LayoutProviderTestConfig;
+import org.carlspring.strongbox.domain.ArtifactEntry;
 import org.carlspring.strongbox.io.RepositoryInputStream;
 import org.carlspring.strongbox.providers.ProviderImplementationException;
 import org.carlspring.strongbox.providers.io.RepositoryFiles;
@@ -57,6 +58,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -536,7 +538,9 @@ public class ArtifactManagementServiceImplTest
         }
         
         Repository repository = getConfiguration().getStorage(STORAGE0).getRepository(REPOSITORY_WITH_LOCK);
-        RepositoryPath repositoryPath = repositoryPathResolver.resolve(repository, "org/carlspring/strongbox/locked-artifact/12.2.0.1/locked-artifact-12.2.0.1.pom");
+        String path = "org/carlspring/strongbox/locked-artifact/12.2.0.1/locked-artifact-12.2.0.1.pom";
+        
+        RepositoryPath repositoryPath = repositoryPathResolver.resolve(repository, path);
 
         // when
         List<Long> resultList = IntStream.range(0, concurrency * 2)
@@ -547,10 +551,17 @@ public class ArtifactManagementServiceImplTest
                                          .collect(Collectors.toList());
 
         // then
-        for (Long result : resultList)
+        for (int i = 0; i < resultList.size(); i++)
         {
-            assertEquals(Long.valueOf(CONTENT_SIZE), result);
+            assertEquals(String.format("Operation [%s:%s] content size don't match.", i % 2 == 0 ? "read" : "write", i),
+                         Long.valueOf(CONTENT_SIZE), resultList.get(i));
         }
+        
+        RepositoryPath repositoryPathResult = repositoryPathResolver.resolve(repository, path);
+        ArtifactEntry artifactEntry = repositoryPathResult.getArtifactEntry();
+        
+        assertNotNull(artifactEntry);
+        assertEquals(Integer.valueOf(concurrency), artifactEntry.getDownloadCount());
         
         byte[] repositoryPathContent = Files.readAllBytes(repositoryPath);
         assertTrue(Arrays.stream(loremIpsumContentArray)
