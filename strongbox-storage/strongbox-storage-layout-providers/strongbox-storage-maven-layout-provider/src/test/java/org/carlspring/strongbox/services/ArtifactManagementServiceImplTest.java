@@ -528,7 +528,8 @@ public class ArtifactManagementServiceImplTest
     public void testConcurrentReadWrite()
             throws Exception
     {
-        int concurrency = Runtime.getRuntime().availableProcessors();
+        int concurrency = 4;
+        
         Random random = new Random();
 
         byte[][] loremIpsumContentArray = new byte[concurrency][];

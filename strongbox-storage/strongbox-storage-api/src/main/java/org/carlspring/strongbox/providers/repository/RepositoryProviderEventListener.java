@@ -21,7 +21,7 @@ import com.orientechnologies.common.concur.ONeedRetryException;
 public class RepositoryProviderEventListener
 {
 
-    private static final int RETRY_COUNT = 3;
+    private static final int RETRY_COUNT = 10;
 
     @Inject
     private ArtifactEntryService artifactEntryService;
