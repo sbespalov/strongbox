@@ -1,10 +1,12 @@
 package org.carlspring.strongbox.providers.repository;
 
+import java.io.IOException;
 import java.util.Date;
 
 import org.carlspring.strongbox.artifact.AsyncArtifctEntryHandler;
 import org.carlspring.strongbox.domain.ArtifactEntry;
 import org.carlspring.strongbox.event.artifact.ArtifactEventTypeEnum;
+import org.carlspring.strongbox.providers.io.RepositoryPath;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -17,8 +19,10 @@ public class ArtifactDownloadingEventHandler extends AsyncArtifctEntryHandler
     }
 
     @Override
-    protected ArtifactEntry handleEvent(ArtifactEntry artifactEntry)
+    protected ArtifactEntry handleEvent(RepositoryPath repositoryPath) throws IOException
     {
+        ArtifactEntry artifactEntry = repositoryPath.getArtifactEntry();
+        
         artifactEntry.setDownloadCount(artifactEntry.getDownloadCount() + 1);
         artifactEntry.setLastUsed(new Date());
 

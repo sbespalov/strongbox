@@ -9,8 +9,6 @@ import java.util.List;
 
 import org.carlspring.strongbox.data.criteria.Paginator;
 import org.carlspring.strongbox.data.criteria.Predicate;
-import org.carlspring.strongbox.io.RepositoryInputStream;
-import org.carlspring.strongbox.io.RepositoryOutputStream;
 import org.carlspring.strongbox.storage.repository.MutableRepository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,7 +36,7 @@ public interface RepositoryProvider
      * @return
      * @throws IOException
      */
-    RepositoryInputStream getInputStream(Path path) throws IOException;
+    InputStream getInputStream(Path path) throws IOException;
     
     /**
      * Return {@link OutputStream} to write Artifact content.
@@ -48,7 +46,7 @@ public interface RepositoryProvider
      * @throws IOException
      * @throws NoSuchAlgorithmException
      */
-    RepositoryOutputStream getOutputStream(Path path)
+    OutputStream getOutputStream(Path path)
             throws IOException, NoSuchAlgorithmException;
     
     /**

@@ -7,7 +7,6 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.util.Date;
 import java.util.Optional;
-import java.util.concurrent.locks.ReadWriteLock;
 
 import javax.inject.Inject;
 
@@ -22,10 +21,8 @@ import org.carlspring.strongbox.data.criteria.Selector;
 import org.carlspring.strongbox.domain.ArtifactEntry;
 import org.carlspring.strongbox.event.artifact.ArtifactEventListenerRegistry;
 import org.carlspring.strongbox.io.ArtifactOutputStream;
-import org.carlspring.strongbox.io.RepositoryInputStream;
-import org.carlspring.strongbox.io.RepositoryOutputStream;
-import org.carlspring.strongbox.io.RepositoryStreamCallback;
-import org.carlspring.strongbox.io.RepositoryStreamContext;
+import org.carlspring.strongbox.io.RepositoryStreamReadContext;
+import org.carlspring.strongbox.io.RepositoryStreamWriteContext;
 import org.carlspring.strongbox.io.StreamUtils;
 import org.carlspring.strongbox.providers.datastore.StorageProviderRegistry;
 import org.carlspring.strongbox.providers.layout.LayoutProviderRegistry;
@@ -36,13 +33,12 @@ import org.carlspring.strongbox.services.ArtifactTagService;
 import org.carlspring.strongbox.storage.repository.Repository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.Assert;
 
 /**
  * @author carlspring
  */
-public abstract class AbstractRepositoryProvider implements RepositoryProvider, RepositoryStreamCallback
+public abstract class AbstractRepositoryProvider extends RepositoryStreamSupport implements RepositoryProvider
 {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractRepositoryProvider.class);
@@ -71,9 +67,6 @@ public abstract class AbstractRepositoryProvider implements RepositoryProvider, 
     @Inject
     protected RepositoryPathLock repositoryPathLock;
     
-    @Inject
-    private PlatformTransactionManager transactionManager;
-
     protected Configuration getConfiguration()
     {
         return configurationManager.getConfiguration();
@@ -106,8 +99,7 @@ public abstract class AbstractRepositoryProvider implements RepositoryProvider, 
             return (RepositoryInputStream) is;
         }
 
-        ReadWriteLock lock = repositoryPathLock.lock(repositoryPath);
-        return RepositoryInputStream.of(repositoryPath, lock, transactionManager, is).with(this);
+        return new RepositoryInputStream(repositoryPath, is);
     }
 
     @Override
@@ -131,12 +123,11 @@ public abstract class AbstractRepositoryProvider implements RepositoryProvider, 
             return (RepositoryOutputStream) os;
         }
 
-        ReadWriteLock lock = repositoryPathLock.lock(repositoryPath);
-        return RepositoryOutputStream.of(repositoryPath, lock, transactionManager, os).with(this);
+        return new RepositoryOutputStream(repositoryPath, os);
     }
 
     @Override
-    public void onBeforeWrite(RepositoryStreamContext ctx) throws IOException
+    public void onBeforeWrite(RepositoryStreamWriteContext ctx) throws IOException
     {
         RepositoryPath repositoryPath = (RepositoryPath) ctx.getPath();
         logger.debug(String.format("Writing [%s]", repositoryPath));
@@ -160,7 +151,7 @@ public abstract class AbstractRepositoryProvider implements RepositoryProvider, 
         artifactEntry.setStorageId(storageId);
         artifactEntry.setRepositoryId(repositoryId);
 
-        ArtifactOutputStream aos = StreamUtils.findSource(ArtifactOutputStream.class, (OutputStream) ctx);
+        ArtifactOutputStream aos = StreamUtils.findSource(ArtifactOutputStream.class, ctx.getStream());
         ArtifactCoordinates coordinates = aos.getCoordinates();
         artifactEntry.setArtifactCoordinates(coordinates);
 
@@ -173,7 +164,7 @@ public abstract class AbstractRepositoryProvider implements RepositoryProvider, 
     }
 
     @Override
-    public void onAfterWrite(RepositoryStreamContext ctx) throws IOException
+    public void onAfterWrite(RepositoryStreamWriteContext ctx) throws IOException
     {
         RepositoryPath repositoryPath = (RepositoryPath) ctx.getPath();
         logger.debug(String.format("Closing [%s]", repositoryPath));
@@ -192,7 +183,7 @@ public abstract class AbstractRepositoryProvider implements RepositoryProvider, 
             return;
         }
         
-        CountingOutputStream cos = StreamUtils.findSource(CountingOutputStream.class, (OutputStream) ctx);
+        CountingOutputStream cos = StreamUtils.findSource(CountingOutputStream.class, ctx.getStream());
         long size = cos.getByteCount();
         
         artifactEntry.setSizeInBytes(size);
@@ -204,7 +195,7 @@ public abstract class AbstractRepositoryProvider implements RepositoryProvider, 
     }
 
     @Override
-    public void onBeforeRead(RepositoryStreamContext ctx)
+    public void onBeforeRead(RepositoryStreamReadContext ctx)
         throws IOException
     {
         RepositoryPath repositoryPath = (RepositoryPath) ctx.getPath();
@@ -226,7 +217,7 @@ public abstract class AbstractRepositoryProvider implements RepositoryProvider, 
     }
     
     @Override
-    public void onAfterRead(RepositoryStreamContext ctx)
+    public void onAfterRead(RepositoryStreamReadContext ctx)
     {
         
     }

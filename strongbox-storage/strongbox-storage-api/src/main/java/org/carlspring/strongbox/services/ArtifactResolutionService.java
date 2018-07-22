@@ -3,9 +3,9 @@ package org.carlspring.strongbox.services;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 
-import org.carlspring.strongbox.io.RepositoryInputStream;
-import org.carlspring.strongbox.io.RepositoryOutputStream;
 import org.carlspring.strongbox.providers.io.RepositoryPath;
+import org.carlspring.strongbox.providers.io.RepositoryStreamSupport.RepositoryInputStream;
+import org.carlspring.strongbox.providers.io.RepositoryStreamSupport.RepositoryOutputStream;
 
 /**
  * @author mtodorov

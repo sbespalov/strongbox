@@ -4,7 +4,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.reflect.UndeclaredThrowableException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -12,6 +11,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.stream.Collectors;
 
@@ -25,13 +25,13 @@ import org.carlspring.strongbox.configuration.ConfigurationManager;
 import org.carlspring.strongbox.domain.ArtifactEntry;
 import org.carlspring.strongbox.event.artifact.ArtifactEventListenerRegistry;
 import org.carlspring.strongbox.io.ArtifactOutputStream;
-import org.carlspring.strongbox.io.RepositoryOutputStream;
 import org.carlspring.strongbox.io.StreamUtils;
 import org.carlspring.strongbox.providers.ProviderImplementationException;
 import org.carlspring.strongbox.providers.io.RepositoryFiles;
 import org.carlspring.strongbox.providers.io.RepositoryPath;
 import org.carlspring.strongbox.providers.io.RepositoryPathLock;
 import org.carlspring.strongbox.providers.io.RepositoryPathResolver;
+import org.carlspring.strongbox.providers.io.RepositoryStreamSupport.RepositoryOutputStream;
 import org.carlspring.strongbox.providers.layout.LayoutProviderRegistry;
 import org.carlspring.strongbox.storage.ArtifactStorageException;
 import org.carlspring.strongbox.storage.Storage;
@@ -94,9 +94,19 @@ public class ArtifactManagementService
         NoSuchAlgorithmException,
         ArtifactCoordinatesValidationException
     {
-        performRepositoryAcceptanceValidation(repositoryPath);
+        ReadWriteLock lock = repositoryPathLock.lock(repositoryPath);
+        lock.writeLock().lock();
 
-        return store(repositoryPath, is);
+        try
+        {
+            performRepositoryAcceptanceValidation(repositoryPath);
+
+            return doStore(repositoryPath, is);
+        } 
+        finally
+        {
+            lock.writeLock().unlock();
+        }
     }
     
     @Deprecated
@@ -111,16 +121,16 @@ public class ArtifactManagementService
     {
         RepositoryPath repositoryPath = repositoryPathResolver.resolve(storageId, repositoryId, path);
 
-        performRepositoryAcceptanceValidation(repositoryPath);
-
-        return store(repositoryPath, is);
+        return validateAndStore(repositoryPath, is);
     }
     
     public long store(RepositoryPath repositoryPath,
-                                    InputStream is) throws IOException
+                      InputStream is)
+        throws IOException
     {
-        ReadWriteLock lock = repositoryPathLock.lock(repositoryPath);
-        lock.writeLock().lock();
+        ReadWriteLock lockSource = repositoryPathLock.lock(repositoryPath);
+        Lock lock = lockSource.writeLock();
+        lock.lock();
         
         try (// Wrap the InputStream, so we could have checksums to compare
              final InputStream remoteIs = new MultipleDigestInputStream(is))
@@ -137,7 +147,7 @@ public class ArtifactManagementService
         } 
         finally 
         {
-            lock.writeLock().unlock();
+            lock.unlock();
         }
     }
 

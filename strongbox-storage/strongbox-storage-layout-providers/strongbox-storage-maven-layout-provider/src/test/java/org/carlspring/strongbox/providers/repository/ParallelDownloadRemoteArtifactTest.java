@@ -55,7 +55,7 @@ public class ParallelDownloadRemoteArtifactTest
     public void testConcurrentDownload()
         throws Exception
     {
-        int concurrency = 4;
+        int concurrency = 8;
 
         final String storageId = "storage-common-proxies";
         final String repositoryId = "maven-central";

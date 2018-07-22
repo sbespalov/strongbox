@@ -179,18 +179,6 @@ public abstract class CommonCrudService<T extends GenericEntity>
     }
 
     @Override
-    public T lockOne(String id)
-    {
-        String sQuery = String.format("SELECT * FROM %s LOCK RECORD", id);
-        OSQLSynchQuery<ODocument> oQuery = new OSQLSynchQuery<>(sQuery);
-        oQuery.setLimit(1);
-
-        List<T> resultList = getDelegate().command(oQuery).execute();
-        
-        return !resultList.isEmpty() ? resultList.iterator().next() : null;
-    }
-
-    @Override
     public Optional<T> findOne(String id)
     {
         if (id == null)
