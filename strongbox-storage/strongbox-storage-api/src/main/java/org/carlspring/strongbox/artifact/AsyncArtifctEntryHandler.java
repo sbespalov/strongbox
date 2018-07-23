@@ -13,20 +13,11 @@ import org.carlspring.strongbox.providers.io.RepositoryFiles;
 import org.carlspring.strongbox.providers.io.RepositoryPath;
 import org.carlspring.strongbox.providers.io.RepositoryPathLock;
 import org.carlspring.strongbox.services.ArtifactEntryService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
-
-import com.orientechnologies.common.concur.ONeedRetryException;
 
 public abstract class AsyncArtifctEntryHandler
 {
-
-    private static final int RETRY_COUNT = 10;
-
-    private static final Logger logger = LoggerFactory.getLogger(AsyncArtifctEntryHandler.class);
 
     @Inject
     private ArtifactEntryService artifactEntryService;
@@ -46,9 +37,9 @@ public abstract class AsyncArtifctEntryHandler
     }
 
     @AsyncEventListener
-    //@Transactional
-    public void handleUpdated(final ArtifactEvent<RepositoryPath> event)
-        throws IOException
+    public void handleEvent(final ArtifactEvent<RepositoryPath> event)
+        throws IOException,
+        InterruptedException
     {
         if (eventType.getType() != event.getType())
         {
@@ -61,49 +52,53 @@ public abstract class AsyncArtifctEntryHandler
             return;
         }
 
-        ReadWriteLock lock = repositoryPathLock.lock(repositoryPath, AsyncArtifctEntryHandler.class.getSimpleName());
-        lock.writeLock().lock();
+        Object sync = new Object();
+        new Thread(() -> {
+            try
+            {
+                handleLocked(repositoryPath);
+            } finally
+            {
+                synchronized (sync)
+                {
+                    sync.notifyAll();
+                }
+            }
+        }).start();
 
+        synchronized (sync)
+        {
+            sync.wait();
+        }
+    }
+
+    private void handleLocked(RepositoryPath repositoryPath)
+    {
+        ReadWriteLock lock = repositoryPathLock.lock(repositoryPath,
+                                                     ArtifactEntry.class.getSimpleName());
+        lock.writeLock().lock();
         try
         {
-            TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
-            transactionTemplate.execute(t -> {
-                try
-                {
-                    return handleWithinTransaction(repositoryPath);
-                }
-                catch (IOException e)
-                {
-                    return null;
-                }
-            });
+            handleTransactional(repositoryPath);
         } finally
         {
             lock.writeLock().unlock();
         }
     }
 
-    private ArtifactEntry handleWithinTransaction(RepositoryPath repositoryPath)
-        throws IOException
+    private void handleTransactional(RepositoryPath repositoryPath)
     {
-        ArtifactEntry artifactEntry = repositoryPath.getArtifactEntry();
-        for (int i = 0; i < RETRY_COUNT; i++)
-        {
-            artifactEntry = handleEvent(repositoryPath);
-
+        TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+        transactionTemplate.execute(t -> {
             try
             {
-                return artifactEntryService.save(artifactEntry);
+                return artifactEntryService.save(handleEvent(repositoryPath));
             }
-            catch (ONeedRetryException e)
+            catch (IOException e)
             {
-                logger.warn(String.format("Retry [%s] save operation, iteration [%s] in [%s].",
-                                          ArtifactEntry.class.getSimpleName(), i,
-                                          this.getClass().getSimpleName()));
-                continue;
+                return null;
             }
-        }
-        return null;
+        });
     }
 
     protected abstract ArtifactEntry handleEvent(RepositoryPath repositoryPath)
