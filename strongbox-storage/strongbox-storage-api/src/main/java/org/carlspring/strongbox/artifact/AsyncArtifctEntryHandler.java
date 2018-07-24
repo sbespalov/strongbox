@@ -60,7 +60,8 @@ public abstract class AsyncArtifctEntryHandler
             try
             {
                 handleLocked(repositoryPath);
-            } finally
+            }
+            finally
             {
                 synchronized (sync)
                 {
