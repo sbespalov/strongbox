@@ -3,16 +3,12 @@ package org.carlspring.strongbox.io;
 import java.nio.file.Path;
 import java.util.concurrent.locks.Lock;
 
-import org.springframework.transaction.TransactionStatus;
-
 public class RepositoryStreamContext
 {
 
     private Path path;
 
     private Lock lock;
-
-    private TransactionStatus transactionStatus;
 
     private boolean opened;
 
@@ -34,16 +30,6 @@ public class RepositoryStreamContext
     public void setLock(Lock lock)
     {
         this.lock = lock;
-    }
-
-    public TransactionStatus getTransactionStatus()
-    {
-        return transactionStatus;
-    }
-
-    public void setTransactionStatus(TransactionStatus transactionStatus)
-    {
-        this.transactionStatus = transactionStatus;
     }
 
     public boolean isOpened()
