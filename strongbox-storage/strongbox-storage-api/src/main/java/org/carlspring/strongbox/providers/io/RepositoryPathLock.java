@@ -29,7 +29,8 @@ public class RepositoryPathLock
         lockService = DistributedLockService.newHazelcastLockService(hazelcastInstance);
     }
 
-    public ReadWriteLock lock(final @Nonnull RepositoryPath repositoryPath) {
+    public ReadWriteLock lock(final @Nonnull RepositoryPath repositoryPath)
+    {
         return lock(repositoryPath, null);
     }
     
@@ -47,7 +48,10 @@ public class RepositoryPathLock
     private URI getLock(final @Nonnull RepositoryPath repositoryPath)
     {
         final URI lock = repositoryPath.toUri();
+        
         Assert.isTrue(lock.isAbsolute(), String.format("Unable to lock relative path %s", lock));
+        
         return lock;
     }
+    
 }
