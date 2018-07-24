@@ -1,6 +1,7 @@
 package org.carlspring.strongbox.providers.repository;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Date;
 
 import org.carlspring.strongbox.artifact.AsyncArtifctEntryHandler;
@@ -23,7 +24,10 @@ public class ArtifactUpdatedEventHandler extends AsyncArtifctEntryHandler
     {
         ArtifactEntry artifactEntry = repositoryPath.getArtifactEntry();
         artifactEntry.setLastUpdated(new Date());
-
+        
+        long size = Files.size(repositoryPath);
+        artifactEntry.setSizeInBytes(size);
+        
         return artifactEntry;
     }
 

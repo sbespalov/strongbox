@@ -124,26 +124,20 @@ public class ProxyRepositoryProvider
     protected ArtifactEntry provideArtifactEntry(RepositoryPath repositoryPath) throws IOException
     {
         ArtifactEntry artifactEntry = super.provideArtifactEntry(repositoryPath);
+        ArtifactEntry remoteArtifactEntry = artifactEntry.getObjectId() == null ? new RemoteArtifactEntry() : (RemoteArtifactEntry) artifactEntry;
         
-        return artifactEntry.getObjectId() == null ? new RemoteArtifactEntry() : (RemoteArtifactEntry) artifactEntry;
+        return remoteArtifactEntry;
     }
 
     @Override
     protected boolean shouldStoreArtifactEntry(ArtifactEntry artifactEntry)
     {
         RemoteArtifactEntry remoteArtifactEntry = (RemoteArtifactEntry) artifactEntry;
-        
-        return super.shouldStoreArtifactEntry(artifactEntry) || !remoteArtifactEntry.getIsCached();
-    }
-
-    @Override
-    protected void storeArtifactEntry(ArtifactEntry artifactEntry)
-    {
-        RemoteArtifactEntry remoteArtifactEntry = (RemoteArtifactEntry) artifactEntry;
+        boolean result = super.shouldStoreArtifactEntry(artifactEntry) || !remoteArtifactEntry.getIsCached();
         
         remoteArtifactEntry.setIsCached(true);
         
-        super.storeArtifactEntry(artifactEntry);
+        return result;
     }
     
 }

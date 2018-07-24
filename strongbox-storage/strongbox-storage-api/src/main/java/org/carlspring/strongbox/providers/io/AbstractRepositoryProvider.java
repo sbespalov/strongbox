@@ -5,12 +5,14 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.nio.file.Path;
+import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.Optional;
 
 import javax.inject.Inject;
 
 import org.apache.commons.io.output.CountingOutputStream;
+import org.carlspring.commons.io.MultipleDigestInputStream;
 import org.carlspring.strongbox.artifact.ArtifactNotFoundException;
 import org.carlspring.strongbox.artifact.coordinates.ArtifactCoordinates;
 import org.carlspring.strongbox.configuration.Configuration;
@@ -19,7 +21,9 @@ import org.carlspring.strongbox.data.criteria.Expression.ExpOperator;
 import org.carlspring.strongbox.data.criteria.Predicate;
 import org.carlspring.strongbox.data.criteria.Selector;
 import org.carlspring.strongbox.domain.ArtifactEntry;
+import org.carlspring.strongbox.event.artifact.ArtifactEvent;
 import org.carlspring.strongbox.event.artifact.ArtifactEventListenerRegistry;
+import org.carlspring.strongbox.event.artifact.ArtifactEventTypeEnum;
 import org.carlspring.strongbox.io.ArtifactOutputStream;
 import org.carlspring.strongbox.io.RepositoryStreamReadContext;
 import org.carlspring.strongbox.io.RepositoryStreamWriteContext;
@@ -33,6 +37,8 @@ import org.carlspring.strongbox.services.ArtifactTagService;
 import org.carlspring.strongbox.storage.repository.Repository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 /**
@@ -92,13 +98,22 @@ public abstract class AbstractRepositoryProvider extends RepositoryStreamSupport
         throws IOException;
 
     protected RepositoryInputStream decorate(RepositoryPath repositoryPath,
-                                             InputStream is)
+                                             InputStream is) throws IOException
     {
         if (is == null || is instanceof RepositoryInputStream)
         {
             return (RepositoryInputStream) is;
         }
 
+        try
+        {
+            is = new MultipleDigestInputStream(is);
+        }
+        catch (NoSuchAlgorithmException e)
+        {
+            throw new IOException();
+        }
+        
         return new RepositoryInputStream(repositoryPath, is);
     }
 
@@ -142,7 +157,6 @@ public abstract class AbstractRepositoryProvider extends RepositoryStreamSupport
         String repositoryId = repository.getId();
 
         ArtifactEntry artifactEntry = provideArtifactEntry(repositoryPath);
-        
         if (!shouldStoreArtifactEntry(artifactEntry))
         {
             return;
@@ -168,30 +182,15 @@ public abstract class AbstractRepositoryProvider extends RepositoryStreamSupport
     {
         RepositoryPath repositoryPath = (RepositoryPath) ctx.getPath();
         logger.debug(String.format("Closing [%s]", repositoryPath));
-        
-        if (!RepositoryFiles.isArtifact(repositoryPath))
-        {
-            return;
-        }
-        
+               
         ArtifactEntry artifactEntry = repositoryPath.artifactEntry;
-        
         if (artifactEntry == null)
-        {
-            artifactEventListenerRegistry.dispatchArtifactUpdatedEvent(repositoryPath);
-            
+        {          
             return;
         }
         
         CountingOutputStream cos = StreamUtils.findSource(CountingOutputStream.class, ctx.getStream());
-        long size = cos.getByteCount();
-        
-        artifactEntry.setSizeInBytes(size);
-
-        storeArtifactEntry(artifactEntry);
-        repositoryPath.artifactEntry = null;
-        
-        artifactEventListenerRegistry.dispatchArtifactStoredEvent(repositoryPath);
+        artifactEntry.setSizeInBytes(cos.getByteCount());
     }
 
     @Override
@@ -233,11 +232,6 @@ public abstract class AbstractRepositoryProvider extends RepositoryStreamSupport
         return artifactEntry.getUuid() == null;
     }
     
-    protected void storeArtifactEntry(ArtifactEntry artifactEntry)
-    {
-        artifactEntryService.save(artifactEntry, true);
-    }
-    
     @Override
     public RepositoryPath fetchPath(Path repositoryPath)
         throws IOException
@@ -272,5 +266,34 @@ public abstract class AbstractRepositoryProvider extends RepositoryStreamSupport
         return selector;
     }
 
+    @Component
+    private static class ArtifactStoredEventListener
+    {
+        
+        @Inject
+        private ArtifactEntryService artifactEntryService;
+        
+        @EventListener
+        public void handleEvent(ArtifactEvent<RepositoryPath> event)
+        {
+            if (ArtifactEventTypeEnum.EVENT_ARTIFACT_FILE_STORED.getType() != event.getType())
+            {
+                return;
+            }
+            
+            RepositoryPath repositoryPath = event.getPath();
+            ArtifactEntry artifactEntry = repositoryPath.artifactEntry;
+            
+            repositoryPath.artifactEntry = null;
+
+            if (artifactEntry == null)
+            {
+                return;
+            }
+            
+            artifactEntryService.save(artifactEntry, true);
+        }
+        
+    }
     
 }

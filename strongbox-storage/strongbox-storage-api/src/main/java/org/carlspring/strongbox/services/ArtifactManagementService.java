@@ -18,7 +18,6 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 
 import org.apache.commons.io.IOUtils;
-import org.carlspring.commons.io.MultipleDigestInputStream;
 import org.carlspring.strongbox.artifact.coordinates.ArtifactCoordinates;
 import org.carlspring.strongbox.configuration.Configuration;
 import org.carlspring.strongbox.configuration.ConfigurationManager;
@@ -87,6 +86,7 @@ public class ArtifactManagementService
     @Inject
     protected RepositoryPathLock repositoryPathLock;
 
+    @Transactional
     public long validateAndStore(RepositoryPath repositoryPath,
                                  InputStream is)
         throws IOException,
@@ -110,6 +110,7 @@ public class ArtifactManagementService
     }
     
     @Deprecated
+    @Transactional
     public long validateAndStore(String storageId,
                                  String repositoryId,
                                  String path,
@@ -124,6 +125,7 @@ public class ArtifactManagementService
         return validateAndStore(repositoryPath, is);
     }
     
+    @Transactional
     public long store(RepositoryPath repositoryPath,
                       InputStream is)
         throws IOException
@@ -132,20 +134,11 @@ public class ArtifactManagementService
         Lock lock = lockSource.writeLock();
         lock.lock();
         
-        try (// Wrap the InputStream, so we could have checksums to compare
-             final InputStream remoteIs = new MultipleDigestInputStream(is))
+        try
         {
-            return doStore(repositoryPath, remoteIs);
-        }
-        catch (IOException e)
-        {
-            throw e;
-        }
-        catch (Exception e)
-        {
-            throw new IOException(e);
+            return doStore(repositoryPath, is);
         } 
-        finally 
+        finally
         {
             lock.unlock();
         }
@@ -157,15 +150,17 @@ public class ArtifactManagementService
     {
         long result;
         boolean updatedMetadataFile = false;
+        boolean updatedArtifactFile = false;
 
-        if (Files.exists(repositoryPath) && RepositoryFiles.isMetadata(repositoryPath))
+        if (Files.exists(repositoryPath))
         {
-            updatedMetadataFile = true;
+            updatedMetadataFile = RepositoryFiles.isMetadata(repositoryPath);
+            updatedArtifactFile = RepositoryFiles.isArtifact(repositoryPath);
         }
         
         try (final RepositoryOutputStream aos = artifactResolutionService.getOutputStream(repositoryPath))
         {
-            result = storeArtifact(repositoryPath, is, aos);
+            result = writeArtifact(repositoryPath, is, aos);
         }
         catch (IOException e)
         {
@@ -175,17 +170,27 @@ public class ArtifactManagementService
         {
             throw new ArtifactStorageException(e);
         }
+
+        if (updatedArtifactFile)
+        {
+            artifactEventListenerRegistry.dispatchArtifactUpdatedEvent(repositoryPath);
+        }
+        else
+        {
+            artifactEventListenerRegistry.dispatchArtifactStoredEvent(repositoryPath);
+        }
         
         if (updatedMetadataFile)
         {
             artifactEventListenerRegistry.dispatchArtifactMetadataFileUpdatedEvent(repositoryPath);
             // If this is a metadata file and it has been updated:
         }
+
         
         return result;
     }
 
-    private long storeArtifact(RepositoryPath repositoryPath,
+    private long writeArtifact(RepositoryPath repositoryPath,
                                InputStream is,
                                OutputStream os)
             throws IOException
@@ -226,7 +231,7 @@ public class ArtifactManagementService
                 validateUploadedChecksumAgainstCache(checksumValue, repositoryPathId);
             }
         }
-
+        
         return totalAmountOfBytes;
     }
 
