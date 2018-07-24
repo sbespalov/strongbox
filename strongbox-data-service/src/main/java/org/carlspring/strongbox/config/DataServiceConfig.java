@@ -69,7 +69,8 @@ public class DataServiceConfig
 
     @Bean
     @Primary
-    public PlatformTransactionManager transactionManager(JpaTransactionManager jpaTransactionManager, HazelcastInstance hazelcastInstance)
+    public PlatformTransactionManager transactionManager(JpaTransactionManager jpaTransactionManager,
+                                                         HazelcastInstance hazelcastInstance)
     {
         HazelcastTransactionManager hazelcastTransactionManager = new HazelcastTransactionManager(hazelcastInstance);
         return new ChainedTransactionManager(hazelcastTransactionManager, jpaTransactionManager);
@@ -110,7 +111,8 @@ public class DataServiceConfig
 
 
     @Qualifier
-    public static @interface OrientDBTransactionManager {
-        
+    public static @interface OrientDBTransactionManager
+    {
     }
+    
 }
