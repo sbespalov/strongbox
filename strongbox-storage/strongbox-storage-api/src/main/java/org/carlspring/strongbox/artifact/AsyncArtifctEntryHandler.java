@@ -52,6 +52,9 @@ public abstract class AsyncArtifctEntryHandler
             return;
         }
 
+        // TODO: please don't panic, this is needed just as workadound to have
+        // new transaction within this async event (expected to be replaced with
+        // just Propagation.REQUIRES_NEW after SB-1200)
         Object sync = new Object();
         new Thread(() -> {
             try
