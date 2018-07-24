@@ -588,13 +588,12 @@ class ArtifactEntryServiceImpl extends AbstractArtifactEntryService
     private String generateKey(ArtifactEntry artifactEntry)
     {
         return Optional.ofNullable(artifactEntry)
-                .map(e -> detach(e))
-                .map(e -> String.format("%s/%s/%s", e.getStorageId(), e.getRepositoryId(),
-                                        e.getArtifactCoordinates().toPath())
-                                .toString())
-                .orElse(null);
+                       .map(e -> detach(e))
+                       .map(e -> String.format("%s/%s/%s",
+                                               e.getStorageId(),
+                                               e.getRepositoryId(),
+                                               e.getArtifactCoordinates().toPath()).toString())
+                       .orElse(null);
     }
-
-    
     
 }
