@@ -83,7 +83,8 @@ public abstract class AsyncArtifctEntryHandler
         try
         {
             handleTransactional(repositoryPath);
-        } finally
+        }
+        finally
         {
             lock.writeLock().unlock();
         }
