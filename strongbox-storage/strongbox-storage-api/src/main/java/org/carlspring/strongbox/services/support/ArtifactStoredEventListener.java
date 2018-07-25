@@ -5,7 +5,7 @@ import java.util.Set;
 
 import javax.inject.Inject;
 
-import org.carlspring.strongbox.artifact.AsyncArtifctEntryHandler;
+import org.carlspring.strongbox.artifact.AsyncArtifactEntryHandler;
 import org.carlspring.strongbox.configuration.ConfigurationManager;
 import org.carlspring.strongbox.domain.ArtifactArchiveListing;
 import org.carlspring.strongbox.domain.ArtifactEntry;
@@ -24,7 +24,7 @@ import org.springframework.stereotype.Component;
  * @author Przemyslaw Fusik
  */
 @Component
-public class ArtifactStoredEventListener extends AsyncArtifctEntryHandler
+public class ArtifactStoredEventListener extends AsyncArtifactEntryHandler
 {
 
     private static final Logger logger = LoggerFactory.getLogger(ArtifactStoredEventListener.class);

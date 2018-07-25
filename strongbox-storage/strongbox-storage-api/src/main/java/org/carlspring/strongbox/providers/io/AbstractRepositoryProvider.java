@@ -111,7 +111,7 @@ public abstract class AbstractRepositoryProvider extends RepositoryStreamSupport
         }
         catch (NoSuchAlgorithmException e)
         {
-            throw new IOException();
+            throw new IOException(e);
         }
         
         return new RepositoryInputStream(repositoryPath, is);

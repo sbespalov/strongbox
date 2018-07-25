@@ -1,6 +1,7 @@
 package org.carlspring.strongbox.artifact;
 
 import java.io.IOException;
+import java.lang.reflect.UndeclaredThrowableException;
 import java.util.concurrent.locks.ReadWriteLock;
 
 import javax.inject.Inject;
@@ -16,7 +17,7 @@ import org.carlspring.strongbox.services.ArtifactEntryService;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
-public abstract class AsyncArtifctEntryHandler
+public abstract class AsyncArtifactEntryHandler
 {
 
     @Inject
@@ -30,7 +31,7 @@ public abstract class AsyncArtifctEntryHandler
 
     private final ArtifactEventTypeEnum eventType;
 
-    public AsyncArtifctEntryHandler(ArtifactEventTypeEnum eventType)
+    public AsyncArtifactEntryHandler(ArtifactEventTypeEnum eventType)
     {
         super();
         this.eventType = eventType;
@@ -101,7 +102,7 @@ public abstract class AsyncArtifctEntryHandler
             }
             catch (IOException e)
             {
-                return null;
+                throw new UndeclaredThrowableException(e);
             }
         });
     }

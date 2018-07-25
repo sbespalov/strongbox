@@ -59,7 +59,7 @@ public interface RepositoryProvider
      * @param paginator
      * @return
      */
-    @Transactional
+    @Transactional(readOnly = true)
     List<Path> search(String storageId,
                       String repositoryId,
                       Predicate predicate,
@@ -74,7 +74,7 @@ public interface RepositoryProvider
      * @param predicate
      * @return
      */
-    @Transactional
+    @Transactional(readOnly = true)
     Long count(String storageId,
                String repositoryId,
                Predicate predicate);
