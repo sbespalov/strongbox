@@ -65,7 +65,9 @@ public class HazelcastConfiguration
                                           .addMapConfig(artifactEntryCacheConfig(CacheName.Artifact.ARTIFACT_ENTRIES));
         config.getGroupConfig().setName("strongbox").setPassword("password");
         config.getNetworkConfig().getJoin().getMulticastConfig().setEnabled(false);
-
+        
+        config.setClassLoader(Thread.currentThread().getContextClassLoader());
+        
         return config;
     }
 }
