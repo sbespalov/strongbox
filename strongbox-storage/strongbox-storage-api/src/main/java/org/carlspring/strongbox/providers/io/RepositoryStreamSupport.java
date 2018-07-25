@@ -68,8 +68,7 @@ public abstract class RepositoryStreamSupport implements RepositoryStreamCallbac
         }
         else
         {
-            //lock = lockSource.readLock();
-            lock = null;
+            lock = lockSource.readLock();
         }
 
         ctx.setLock(lock);
