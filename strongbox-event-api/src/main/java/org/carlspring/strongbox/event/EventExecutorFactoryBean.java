@@ -45,15 +45,15 @@ public class EventExecutorFactoryBean implements FactoryBean<Executor>
 
     private Executor lookupExecutor()
     {
-//        Executor result;
-//        if ((result = lookupJettyExecutor()) != null)
-//        {
-//            return result;
-//        }
-//        else if ((result = lookupTomcatExecutor()) != null)
-//        {
-//            return result;
-//        }
+        Executor result;
+        if ((result = lookupJettyExecutor()) != null)
+        {
+            return result;
+        }
+        else if ((result = lookupTomcatExecutor()) != null)
+        {
+            return result;
+        }
         return null;
     }
 
