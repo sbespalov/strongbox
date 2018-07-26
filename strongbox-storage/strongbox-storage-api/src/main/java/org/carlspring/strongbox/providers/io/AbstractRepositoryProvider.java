@@ -280,7 +280,7 @@ public abstract class AbstractRepositoryProvider extends RepositoryStreamSupport
                 return;
             }
             
-            artifactEntryService.save(artifactEntry, false);
+            artifactEntryService.save(artifactEntry, true);
         }
         
     }
