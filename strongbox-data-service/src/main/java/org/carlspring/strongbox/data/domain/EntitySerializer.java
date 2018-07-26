@@ -24,7 +24,7 @@ public abstract class EntitySerializer<T extends GenericEntity> implements Strea
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         //Log.TRACE();
 
-        kryoPool = new Pool<Kryo>(true, false, 8)
+        kryoPool = new Pool<Kryo>(true, false, 150)
         {
             protected Kryo create()
             {
