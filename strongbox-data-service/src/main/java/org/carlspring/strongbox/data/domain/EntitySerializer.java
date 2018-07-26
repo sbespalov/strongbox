@@ -3,9 +3,6 @@ package org.carlspring.strongbox.data.domain;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
@@ -50,10 +47,7 @@ public abstract class EntitySerializer<T extends GenericEntity> implements Strea
 
     protected void init(Kryo kryo)
     {
-        kryo.register(HashMap.class);
-        kryo.register(HashSet.class);
-        kryo.register(Date.class);
-        kryo.register(getEntityClass());
+        
     }
 
     protected Kryo getKryo()
