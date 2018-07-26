@@ -1,6 +1,7 @@
 package org.carlspring.strongbox.providers.repository;
 
 
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -91,7 +92,7 @@ public class ProxyRepositoryProvider
     protected OutputStream getOutputStreamInternal(RepositoryPath repositoryPath)
             throws IOException
     {
-        return Files.newOutputStream(repositoryPath);
+        return new BufferedOutputStream(Files.newOutputStream(repositoryPath));
     }
     
     @Override
