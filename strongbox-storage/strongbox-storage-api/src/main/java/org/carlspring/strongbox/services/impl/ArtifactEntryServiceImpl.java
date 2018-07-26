@@ -66,7 +66,7 @@ class ArtifactEntryServiceImpl extends AbstractArtifactEntryService
     private CacheManager cacheManager;
     
     @Override
-    @CacheEvict(cacheNames = CacheName.Artifact.ARTIFACT_ENTRIES, keyGenerator = ArtifactEntryKeyGenerator.NAME_ARTIFACT_ENTRY_KYE_GENERATOR)
+    //@CacheEvict(cacheNames = CacheName.Artifact.ARTIFACT_ENTRIES, keyGenerator = ArtifactEntryKeyGenerator.NAME_ARTIFACT_ENTRY_KYE_GENERATOR)
     public <S extends ArtifactEntry> S save(S entity,
                                             boolean updateLastVersion)
     {
@@ -102,7 +102,7 @@ class ArtifactEntryServiceImpl extends AbstractArtifactEntryService
     }
 
     @Override
-    @CacheEvict(cacheNames = CacheName.Artifact.ARTIFACT_ENTRIES, keyGenerator = ArtifactEntryKeyGenerator.NAME_ARTIFACT_ENTRY_KYE_GENERATOR)
+    //@CacheEvict(cacheNames = CacheName.Artifact.ARTIFACT_ENTRIES, keyGenerator = ArtifactEntryKeyGenerator.NAME_ARTIFACT_ENTRY_KYE_GENERATOR)
     public <S extends ArtifactEntry> S save(S entity)
     {
         return save(entity, false);
@@ -144,7 +144,7 @@ class ArtifactEntryServiceImpl extends AbstractArtifactEntryService
             entity.getTagSet().add(lastVersionTag);
             lastVersionEntry.getTagSet().remove(lastVersionTag);
             
-            cacheManager.getCache(CacheName.Artifact.ARTIFACT_ENTRIES).evict(generateKey(lastVersionEntry));
+            //cacheManager.getCache(CacheName.Artifact.ARTIFACT_ENTRIES).evict(generateKey(lastVersionEntry));
             
             super.save(lastVersionEntry);
         }
@@ -465,7 +465,7 @@ class ArtifactEntryServiceImpl extends AbstractArtifactEntryService
     }
 
     @Override
-    @Cacheable(value = CacheName.Artifact.ARTIFACT_ENTRIES, key = "#p0 + '/' + #p1 + '/' + #p2")
+    //@Cacheable(value = CacheName.Artifact.ARTIFACT_ENTRIES, key = "#p0 + '/' + #p1 + '/' + #p2")
     public ArtifactEntry findOneArtifact(String storageId,
                                          String repositoryId,
                                          String path)
@@ -478,28 +478,28 @@ class ArtifactEntryServiceImpl extends AbstractArtifactEntryService
     }
     
     @Override
-    @CacheEvict(cacheNames = CacheName.Artifact.ARTIFACT_ENTRIES, allEntries = true)
+    //@CacheEvict(cacheNames = CacheName.Artifact.ARTIFACT_ENTRIES, allEntries = true)
     public void delete(String id)
     {
         super.delete(id);
     }
 
     @Override
-    @CacheEvict(cacheNames = CacheName.Artifact.ARTIFACT_ENTRIES, keyGenerator = ArtifactEntryKeyGenerator.NAME_ARTIFACT_ENTRY_KYE_GENERATOR)
+    //@CacheEvict(cacheNames = CacheName.Artifact.ARTIFACT_ENTRIES, keyGenerator = ArtifactEntryKeyGenerator.NAME_ARTIFACT_ENTRY_KYE_GENERATOR)
     public void delete(ArtifactEntry entity)
     {
         super.delete(entity);
     }
 
     @Override
-    @CacheEvict(cacheNames = CacheName.Artifact.ARTIFACT_ENTRIES, allEntries = true)
+    //@CacheEvict(cacheNames = CacheName.Artifact.ARTIFACT_ENTRIES, allEntries = true)
     public void deleteAll()
     {
         super.deleteAll();
     }
 
     @Override
-    @CacheEvict(cacheNames = CacheName.Artifact.ARTIFACT_ENTRIES, allEntries = true)
+    //@CacheEvict(cacheNames = CacheName.Artifact.ARTIFACT_ENTRIES, allEntries = true)
     public int delete(List<ArtifactEntry> artifactEntries)
     {
         if (CollectionUtils.isEmpty(artifactEntries))
