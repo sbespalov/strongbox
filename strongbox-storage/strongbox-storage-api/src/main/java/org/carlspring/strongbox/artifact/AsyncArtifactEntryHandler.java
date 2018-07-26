@@ -14,11 +14,15 @@ import org.carlspring.strongbox.providers.io.RepositoryFiles;
 import org.carlspring.strongbox.providers.io.RepositoryPath;
 import org.carlspring.strongbox.providers.io.RepositoryPathLock;
 import org.carlspring.strongbox.services.ArtifactEntryService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 public abstract class AsyncArtifactEntryHandler
 {
+    
+    private static final Logger logger = LoggerFactory.getLogger(AsyncArtifactEntryHandler.class);
 
     @Inject
     private ArtifactEntryService artifactEntryService;
@@ -62,6 +66,12 @@ public abstract class AsyncArtifactEntryHandler
             {
                 handleLocked(repositoryPath);
             }
+            catch (Exception e)
+            {
+                logger.error(String.format("Failed to handle async event [%s]",
+                                           AsyncArtifactEntryHandler.this.getClass().getSimpleName()),
+                             e);
+            } 
             finally
             {
                 synchronized (sync)
@@ -85,8 +95,7 @@ public abstract class AsyncArtifactEntryHandler
         try
         {
             handleTransactional(repositoryPath);
-        }
-        finally
+        } finally
         {
             lock.writeLock().unlock();
         }

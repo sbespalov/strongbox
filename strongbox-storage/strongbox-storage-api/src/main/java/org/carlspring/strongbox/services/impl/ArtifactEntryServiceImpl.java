@@ -20,9 +20,11 @@ import javax.inject.Inject;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.carlspring.strongbox.artifact.ArtifactTag;
+import org.carlspring.strongbox.artifact.coordinates.AbstractArtifactCoordinates;
 import org.carlspring.strongbox.artifact.coordinates.ArtifactCoordinates;
 import org.carlspring.strongbox.data.CacheName;
 import org.carlspring.strongbox.data.service.support.search.PagingCriteria;
+import org.carlspring.strongbox.domain.ArtifactArchiveListing;
 import org.carlspring.strongbox.domain.ArtifactEntry;
 import org.carlspring.strongbox.domain.ArtifactTagEntry;
 import org.carlspring.strongbox.services.ArtifactEntryService;
@@ -580,7 +582,20 @@ class ArtifactEntryServiceImpl extends AbstractArtifactEntryService
     protected ArtifactEntry detach(ArtifactEntry entity)
     {
         ArtifactEntry result = super.detach(entity);
-        result.setArtifactCoordinates(getDelegate().detachAll(entity.getArtifactCoordinates(), true));
+        
+        AbstractArtifactCoordinates artifactCoordinates = getDelegate().detachAll(entity.getArtifactCoordinates(), true);
+        artifactCoordinates.coordinates = new HashMap<>(artifactCoordinates.coordinates);
+        
+        result.setArtifactCoordinates(artifactCoordinates);
+        
+        ArtifactArchiveListing artifactArchiveListing = result.getArtifactArchiveListing();
+        if (artifactArchiveListing != null)
+        {
+            artifactArchiveListing = getDelegate().detachAll(artifactArchiveListing, true);
+            artifactArchiveListing.filenames = new HashSet<>(artifactArchiveListing.filenames);
+        }
+        
+        result.setArtifactArchiveListing(artifactArchiveListing);
         
         return result;
     }

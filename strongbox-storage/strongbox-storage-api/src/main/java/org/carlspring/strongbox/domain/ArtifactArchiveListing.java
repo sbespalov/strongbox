@@ -13,7 +13,7 @@ public class ArtifactArchiveListing
         implements Serializable
 {
 
-    private Set<String> filenames = new LinkedHashSet<>();
+    public Set<String> filenames = new LinkedHashSet<>();
 
     public Set<String> getFilenames()
     {

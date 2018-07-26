@@ -15,7 +15,7 @@ public abstract class AbstractArtifactCoordinates<C extends AbstractArtifactCoor
         implements ArtifactCoordinates<C, V>
 {
 
-    private Map<String, String> coordinates = new LinkedHashMap<>();
+    public Map<String, String> coordinates = new LinkedHashMap<>();
     /**
      * This field is used as unique OrientDB index.
      */
