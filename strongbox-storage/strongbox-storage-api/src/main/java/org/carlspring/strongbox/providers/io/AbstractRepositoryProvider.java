@@ -5,14 +5,12 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.nio.file.Path;
-import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.Optional;
 
 import javax.inject.Inject;
 
 import org.apache.commons.io.output.CountingOutputStream;
-import org.carlspring.commons.io.MultipleDigestInputStream;
 import org.carlspring.strongbox.artifact.ArtifactNotFoundException;
 import org.carlspring.strongbox.artifact.coordinates.ArtifactCoordinates;
 import org.carlspring.strongbox.configuration.Configuration;
@@ -105,15 +103,6 @@ public abstract class AbstractRepositoryProvider extends RepositoryStreamSupport
             return (RepositoryInputStream) is;
         }
 
-        try
-        {
-            is = new MultipleDigestInputStream(is);
-        }
-        catch (NoSuchAlgorithmException e)
-        {
-            throw new IOException(e);
-        }
-        
         return new RepositoryInputStream(repositoryPath, is);
     }
 
