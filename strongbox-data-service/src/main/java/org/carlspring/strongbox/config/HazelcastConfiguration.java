@@ -4,6 +4,8 @@ import java.util.Set;
 
 import org.carlspring.strongbox.data.CacheName;
 import org.carlspring.strongbox.data.domain.EntitySerializer;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Required;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -61,9 +63,13 @@ public class HazelcastConfiguration
     }
 
     @Bean
-    public SerializationConfig hazelcastSerializationConfig(Set<EntitySerializer<?>> entitySerializerSet)
+    public SerializationConfig hazelcastSerializationConfig(@Autowired(required = false) Set<EntitySerializer<?>> entitySerializerSet)
     {
         SerializationConfig serializationConfig = new SerializationConfig();
+        if (entitySerializerSet == null) {
+            return serializationConfig;
+        }
+        
         for (EntitySerializer<?> entitySerializer : entitySerializerSet)
         {
             serializationConfig.getSerializerConfigs()
