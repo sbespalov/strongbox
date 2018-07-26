@@ -109,8 +109,9 @@ public class ProxyRepositoryArtifactResolver
         throws IOException
     {
         //We need this to force initialize lazy connection to remote repository.
-        int available = is.available();
-        logger.debug(String.format("Got [%s] avaliable bytes for [%s].", available, repositoryPath));
+        //int available = is.available();
+        //logger.debug(String.format("Got [%s] avaliable bytes for [%s].", available, repositoryPath));
+        logger.debug(String.format("Fetch remote artifact [%s].", repositoryPath));
         
         
         RepositoryPath result = onSuccessfulProxyRepositoryResponse(is, repositoryPath);
