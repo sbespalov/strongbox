@@ -194,12 +194,12 @@ public abstract class AbstractRepositoryProvider extends RepositoryStreamSupport
             return;
         }
 
-//        if (RepositoryFiles.artifactDoesNotExist(repositoryPath))
-//        {
-//            URI artifactResource = RepositoryFiles.resolveResource(repositoryPath);
-//            
-//            throw new ArtifactNotFoundException(artifactResource);
-//        }
+        if (RepositoryFiles.artifactDoesNotExist(repositoryPath))
+        {
+            URI artifactResource = RepositoryFiles.resolveResource(repositoryPath);
+            
+            throw new ArtifactNotFoundException(artifactResource);
+        }
         
         artifactEventListenerRegistry.dispatchArtifactDownloadingEvent(repositoryPath);
     }
