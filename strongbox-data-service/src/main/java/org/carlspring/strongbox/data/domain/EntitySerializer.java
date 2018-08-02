@@ -12,7 +12,7 @@ import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.StreamSerializer;
 
-public abstract class EntitySerializer<T extends GenericEntity> implements StreamSerializer<T>
+public abstract class EntitySerializer<T> implements StreamSerializer<T>
 {
 
     private Pool<Kryo> kryoPool;

@@ -150,8 +150,14 @@ public abstract class CommonCrudService<T extends GenericEntity>
             return false;
         }
         
+        Class<? extends GenericEntity> entityClass = entity.getClass();
+        if (entityClass.getSimpleName().contains("s"))
+        {
+            entityClass = (Class<? extends GenericEntity>) entityClass.getSuperclass();
+        }
+        
         String sQuery = String.format("SELECT @rid AS objectId FROM %s WHERE uuid = :uuid",
-                                      entity.getClass().getSimpleName());
+                                      entityClass.getSimpleName());
 
         OSQLSynchQuery<ODocument> oQuery = new OSQLSynchQuery<>(sQuery);
         oQuery.setLimit(1);

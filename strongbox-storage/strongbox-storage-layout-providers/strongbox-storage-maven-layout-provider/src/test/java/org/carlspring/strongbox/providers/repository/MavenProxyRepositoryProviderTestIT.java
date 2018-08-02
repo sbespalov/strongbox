@@ -4,6 +4,7 @@ import org.carlspring.strongbox.client.ArtifactTransportException;
 import org.carlspring.strongbox.config.Maven2LayoutProviderCronTasksTestConfig;
 import org.carlspring.strongbox.data.CacheManagerTestExecutionListener;
 import org.carlspring.strongbox.domain.ArtifactEntry;
+import org.carlspring.strongbox.domain.ArtifactEntryRead;
 import org.carlspring.strongbox.providers.ProviderImplementationException;
 import org.carlspring.strongbox.providers.io.RepositoryPath;
 import org.carlspring.strongbox.providers.layout.LayoutProvider;
@@ -35,6 +36,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -178,15 +180,13 @@ public class MavenProxyRepositoryProviderTestIT
         String repositoryId = "maven-central";
         String path = "org/carlspring/properties-injector/1.6/properties-injector-1.6.jar";
 
-        Optional<ArtifactEntry> artifactEntry = Optional.ofNullable(artifactEntryService.findOneArtifact(storageId,
-                                                                                                         repositoryId,
-                                                                                                         path));
-        assertThat(artifactEntry, CoreMatchers.equalTo(Optional.empty()));
+        ArtifactEntryRead artifactEntry = artifactEntryService.findOneArtifact(storageId, repositoryId, path);
+        assertNull(artifactEntry);
 
         assertStreamNotNull(storageId, repositoryId, path);
 
-        artifactEntry = Optional.ofNullable(artifactEntryService.findOneArtifact(storageId, repositoryId, path));
-        assertThat(artifactEntry, CoreMatchers.not(CoreMatchers.equalTo(Optional.empty())));
+        artifactEntry = artifactEntryService.findOneArtifact(storageId, repositoryId, path);
+        assertNotNull(artifactEntry);
     }
 
     @Test

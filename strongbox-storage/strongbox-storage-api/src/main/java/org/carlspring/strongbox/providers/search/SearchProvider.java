@@ -26,7 +26,7 @@ public interface SearchProvider
      * @param searchRequest
      * @return
      */
-    SearchResult findExact(SearchRequest searchRequest);
+    //SearchResult findExact(SearchRequest searchRequest);
 
     boolean contains(SearchRequest searchRequest)
             throws SearchException;

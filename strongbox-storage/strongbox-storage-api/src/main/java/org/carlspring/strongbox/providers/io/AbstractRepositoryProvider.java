@@ -19,6 +19,8 @@ import org.carlspring.strongbox.data.criteria.Expression.ExpOperator;
 import org.carlspring.strongbox.data.criteria.Predicate;
 import org.carlspring.strongbox.data.criteria.Selector;
 import org.carlspring.strongbox.domain.ArtifactEntry;
+import org.carlspring.strongbox.domain.ArtifactEntryRead;
+import org.carlspring.strongbox.domain.RemoteArtifactEntry;
 import org.carlspring.strongbox.event.artifact.ArtifactEvent;
 import org.carlspring.strongbox.event.artifact.ArtifactEventListenerRegistry;
 import org.carlspring.strongbox.event.artifact.ArtifactEventTypeEnum;
@@ -145,11 +147,13 @@ public abstract class AbstractRepositoryProvider extends RepositoryStreamSupport
         String storageId = repository.getStorage().getId();
         String repositoryId = repository.getId();
 
-        ArtifactEntry artifactEntry = provideArtifactEntry(repositoryPath);
-        if (!shouldStoreArtifactEntry(artifactEntry))
+        ArtifactEntryRead providedArtifactEntry = provideArtifactEntry(repositoryPath);
+        if (!shouldStoreArtifactEntry(providedArtifactEntry))
         {
             return;
         }
+        
+        ArtifactEntry artifactEntry = (ArtifactEntry) providedArtifactEntry;
         
         artifactEntry.setStorageId(storageId);
         artifactEntry.setRepositoryId(repositoryId);
@@ -172,7 +176,7 @@ public abstract class AbstractRepositoryProvider extends RepositoryStreamSupport
         RepositoryPath repositoryPath = (RepositoryPath) ctx.getPath();
         logger.debug(String.format("Closing [%s]", repositoryPath));
                
-        ArtifactEntry artifactEntry = repositoryPath.artifactEntry;
+        ArtifactEntry artifactEntry = (ArtifactEntry) repositoryPath.artifactEntry;
         if (artifactEntry == null)
         {          
             return;
@@ -210,15 +214,15 @@ public abstract class AbstractRepositoryProvider extends RepositoryStreamSupport
         
     }
 
-    protected ArtifactEntry provideArtifactEntry(RepositoryPath repositoryPath) throws IOException
+    protected ArtifactEntryRead provideArtifactEntry(RepositoryPath repositoryPath) throws IOException
     {
         return Optional.ofNullable(repositoryPath.getArtifactEntry())
                        .orElse(new ArtifactEntry());
     }
     
-    protected boolean shouldStoreArtifactEntry(ArtifactEntry artifactEntry)
+    protected boolean shouldStoreArtifactEntry(ArtifactEntryRead artifactEntry)
     {
-        return artifactEntry.getUuid() == null;
+        return artifactEntry.getObjectId() == null;
     }
     
     @Override
@@ -271,7 +275,13 @@ public abstract class AbstractRepositoryProvider extends RepositoryStreamSupport
             }
             
             RepositoryPath repositoryPath = event.getPath();
-            ArtifactEntry artifactEntry = repositoryPath.artifactEntry;
+            ArtifactEntry artifactEntry = (ArtifactEntry) repositoryPath.artifactEntry;
+
+            if (artifactEntry instanceof RemoteArtifactEntry)
+            {
+                ((RemoteArtifactEntry) artifactEntry).setIsCached(true);
+            }
+            
             
             repositoryPath.artifactEntry = null;
 

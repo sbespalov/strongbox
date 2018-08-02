@@ -1,6 +1,7 @@
 package org.carlspring.strongbox.providers.repository;
 
 import org.carlspring.strongbox.domain.ArtifactEntry;
+import org.carlspring.strongbox.domain.ArtifactEntryRead;
 import org.carlspring.strongbox.providers.io.RepositoryPath;
 import org.carlspring.strongbox.providers.io.RepositoryPathResolver;
 import org.carlspring.strongbox.providers.repository.proxied.LocalStorageProxyRepositoryExpiredArtifactsCleaner;
@@ -19,6 +20,8 @@ import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.mockito.Mockito;
+
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 
@@ -72,10 +75,8 @@ public class BaseLocalStorageProxyRepositoryExpiredArtifactsCleanerTest
     protected ArtifactEntry downloadAndSaveArtifactEntry()
             throws Exception
     {
-        Optional<ArtifactEntry> artifactEntryOptional = Optional.ofNullable(artifactEntryService.findOneArtifact(storageId,
-                                                                                                                 repositoryId,
-                                                                                                                 path));
-        assertThat(artifactEntryOptional, CoreMatchers.equalTo(Optional.empty()));
+        ArtifactEntryRead artifactEntryOptional = artifactEntryService.findOneArtifact(storageId, repositoryId, path);
+        assertNull(artifactEntryOptional);
 
         RepositoryPath repositoryPath = proxyRepositoryProvider.fetchPath(repositoryPathResolver.resolve(storageId, repositoryId,
                                                                                                          path));
@@ -83,9 +84,9 @@ public class BaseLocalStorageProxyRepositoryExpiredArtifactsCleanerTest
         {
         }
 
-        artifactEntryOptional = Optional.ofNullable(artifactEntryService.findOneArtifact(storageId, repositoryId,
-                                                                                         path));
-        ArtifactEntry artifactEntry = artifactEntryOptional.orElse(null);
+        artifactEntryOptional = artifactEntryService.findOneArtifact(storageId, repositoryId, path);
+        ArtifactEntry artifactEntry = artifactEntryOptional.getArtifactEntry();
+        
         assertThat(artifactEntry, CoreMatchers.notNullValue());
         assertThat(artifactEntry.getLastUpdated(), CoreMatchers.notNullValue());
         assertThat(artifactEntry.getLastUsed(), CoreMatchers.notNullValue());

@@ -247,7 +247,7 @@ public class NugetArtifactController extends BaseArtifactController
                                               EntryProperties properties) throws IOException
     {
         RepositoryPath path = nupkg.getPath();
-        ArtifactEntry artifactEntry = path.getArtifactEntry();
+        ArtifactEntry artifactEntry = path.getArtifactEntry().getArtifactEntry();
 
         properties.setId(nupkg.getId());
 

@@ -3,6 +3,7 @@ package org.carlspring.strongbox.providers.repository;
 import org.carlspring.strongbox.config.Maven2LayoutProviderCronTasksTestConfig;
 import org.carlspring.strongbox.data.CacheManagerTestExecutionListener;
 import org.carlspring.strongbox.domain.ArtifactEntry;
+import org.carlspring.strongbox.domain.ArtifactEntryRead;
 import org.carlspring.strongbox.providers.layout.LayoutProvider;
 import org.carlspring.strongbox.storage.Storage;
 import org.carlspring.strongbox.storage.repository.Repository;
@@ -35,10 +36,8 @@ public class WhenRepositoryIsAliveCleanExpiredArtifactsTestIT
         ArtifactEntry artifactEntry = downloadAndSaveArtifactEntry();
 
         localStorageProxyRepositoryExpiredArtifactsCleaner.cleanup(5, artifactEntry.getSizeInBytes() - 1);
-        Optional<ArtifactEntry> artifactEntryOptional = Optional.ofNullable(artifactEntryService.findOneArtifact(storageId,
-                                                                                                                 repositoryId,
-                                                                                                                 path));
-        assertThat(artifactEntryOptional, CoreMatchers.equalTo(Optional.empty()));
+        ArtifactEntryRead artifactEntryOptional = artifactEntryService.findOneArtifact(storageId, repositoryId, path);
+        assertNull(artifactEntryOptional);
 
         final Storage storage = getConfiguration().getStorage(artifactEntry.getStorageId());
         final Repository repository = storage.getRepository(artifactEntry.getRepositoryId());

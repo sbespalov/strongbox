@@ -5,6 +5,7 @@ import org.carlspring.strongbox.client.ArtifactTransportException;
 import org.carlspring.strongbox.config.NugetLayoutProviderTestConfig;
 import org.carlspring.strongbox.configuration.ConfigurationManager;
 import org.carlspring.strongbox.domain.ArtifactEntry;
+import org.carlspring.strongbox.domain.ArtifactEntryRead;
 import org.carlspring.strongbox.domain.RemoteArtifactEntry;
 import org.carlspring.strongbox.nuget.NugetSearchRequest;
 import org.carlspring.strongbox.providers.layout.NugetLayoutProvider;
@@ -117,12 +118,11 @@ public class NugetRemoteRepositoryTest
                                     nugetSearchRequest);
 
         NugetArtifactCoordinates c = new NugetArtifactCoordinates("NHibernate", "4.0.4.4000", "nupkg");
-        Optional<ArtifactEntry> artifactEntry = Optional.ofNullable(artifactEntryService.findOneArtifact(NUGET_COMMON_STORAGE,
-                                                                                                         REPOSITORY_PROXY,
-                                                                                                         c.toPath()));
+        ArtifactEntryRead artifactEntry = artifactEntryService.findOneArtifact(NUGET_COMMON_STORAGE, REPOSITORY_PROXY,
+                                                                               c.toPath());
 
-        Assert.assertTrue(artifactEntry.isPresent());
-        Assert.assertFalse(((RemoteArtifactEntry) artifactEntry.get()).getIsCached());
+        Assert.assertNotNull(artifactEntry);
+        Assert.assertFalse(((RemoteArtifactEntry) artifactEntry.getArtifactEntry()).getIsCached());
     }
 
 }

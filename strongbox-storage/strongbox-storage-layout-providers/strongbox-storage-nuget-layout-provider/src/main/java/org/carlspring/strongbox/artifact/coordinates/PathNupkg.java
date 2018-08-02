@@ -45,7 +45,7 @@ public class PathNupkg implements Nupkg
         Assert.notNull(path.getArtifactEntry());
         
         this.path = path;
-        this.artifactCoordinates = (NugetArtifactCoordinates) path.getArtifactEntry().getArtifactCoordinates();
+        this.artifactCoordinates = (NugetArtifactCoordinates) path.getArtifactEntry().getArtifactEntry().getArtifactCoordinates();
         this.nuspecFile = createNuspecFile();
         this.hash = createHash();
     }

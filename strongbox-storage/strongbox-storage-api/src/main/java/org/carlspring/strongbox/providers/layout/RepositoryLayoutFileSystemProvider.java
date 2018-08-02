@@ -3,6 +3,7 @@ package org.carlspring.strongbox.providers.layout;
 import org.carlspring.commons.io.reloading.FSReloadableInputStreamHandler;
 import org.carlspring.strongbox.artifact.coordinates.ArtifactCoordinates;
 import org.carlspring.strongbox.domain.ArtifactEntry;
+import org.carlspring.strongbox.domain.ArtifactEntryRead;
 import org.carlspring.strongbox.event.artifact.ArtifactEventListenerRegistry;
 import org.carlspring.strongbox.event.repository.RepositoryEventListenerRegistry;
 import org.carlspring.strongbox.io.ArtifactInputStream;
@@ -296,17 +297,17 @@ public abstract class RepositoryLayoutFileSystemProvider extends RepositoryFileS
             return;
         }
         
-        ArtifactEntry artifactEntry = Optional.ofNullable(repositoryPath.getArtifactEntry())
+        ArtifactEntryRead artifactEntry = Optional.ofNullable(repositoryPath.getArtifactEntry())
                                               .orElseGet(() -> fetchArtifactEntry(repositoryPath));
         if (artifactEntry != null)
         {
-            artifactEntryService.delete(artifactEntry);
+            artifactEntryService.delete(artifactEntry.getObjectId());
         }
         
         super.doDeletePath(repositoryPath, force);
     }
 
-    private ArtifactEntry fetchArtifactEntry(RepositoryPath repositoryPath)
+    private ArtifactEntryRead fetchArtifactEntry(RepositoryPath repositoryPath)
     {
         Repository repository = repositoryPath.getRepository();
         String path;

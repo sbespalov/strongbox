@@ -12,7 +12,9 @@ import java.util.stream.Collectors;
 
 import org.carlspring.strongbox.artifact.coordinates.ArtifactCoordinates;
 import org.carlspring.strongbox.domain.ArtifactEntry;
+import org.carlspring.strongbox.domain.ArtifactEntryRead;
 import org.carlspring.strongbox.domain.RemoteArtifactEntry;
+import org.carlspring.strongbox.domain.RemoteArtifactEntryRead;
 
 public abstract class RepositoryFiles
 {
@@ -162,8 +164,9 @@ public abstract class RepositoryFiles
     {
         if (RepositoryFiles.isArtifact(repositoryPath))
         {
-            ArtifactEntry e = repositoryPath.getArtifactEntry();
-            return e == null || e instanceof RemoteArtifactEntry && !((RemoteArtifactEntry) e).getIsCached();
+            ArtifactEntryRead e = repositoryPath.getArtifactEntry();
+            
+            return e == null || e instanceof RemoteArtifactEntryRead && !((RemoteArtifactEntryRead) e).getIsCached();
         }
         else
         {

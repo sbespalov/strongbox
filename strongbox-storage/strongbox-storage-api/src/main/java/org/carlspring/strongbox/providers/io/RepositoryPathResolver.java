@@ -8,6 +8,7 @@ import javax.inject.Inject;
 import org.carlspring.strongbox.artifact.coordinates.ArtifactCoordinates;
 import org.carlspring.strongbox.configuration.ConfigurationManager;
 import org.carlspring.strongbox.domain.ArtifactEntry;
+import org.carlspring.strongbox.domain.ArtifactEntryRead;
 import org.carlspring.strongbox.services.ArtifactEntryService;
 import org.carlspring.strongbox.storage.Storage;
 import org.carlspring.strongbox.storage.repository.Repository;
@@ -89,7 +90,7 @@ public class RepositoryPathResolver
         }
 
         @Override
-        public ArtifactEntry getArtifactEntry()
+        public ArtifactEntryRead getArtifactEntry()
             throws IOException
         {
             if (this.getRepository().isGroupRepository() || !RepositoryFiles.isArtifact(this))

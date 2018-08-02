@@ -1119,7 +1119,7 @@ public class MavenArtifactControllerTest
                .then()
                .statusCode(HttpStatus.OK.value());
         
-        ArtifactEntry artifactEntry = artifactEntryService.findOneArtifact("storage-common-proxies", "carlspring", path);
+        ArtifactEntry artifactEntry = artifactEntryService.findOneArtifact("storage-common-proxies", "carlspring", path).getArtifactEntry();
         assertNotNull(artifactEntry);
         assertNotNull(artifactEntry.getArtifactCoordinates());
         

@@ -559,7 +559,7 @@ public class ArtifactManagementServiceImplTest
         }
         
         RepositoryPath repositoryPathResult = repositoryPathResolver.resolve(repository, path);
-        ArtifactEntry artifactEntry = repositoryPathResult.getArtifactEntry();
+        ArtifactEntry artifactEntry = repositoryPathResult.getArtifactEntry().getArtifactEntry();
         
         assertNotNull(artifactEntry);
         assertEquals(Integer.valueOf(concurrency), artifactEntry.getDownloadCount());

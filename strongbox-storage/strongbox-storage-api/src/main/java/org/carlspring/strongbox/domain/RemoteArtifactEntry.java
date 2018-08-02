@@ -7,7 +7,7 @@ import javax.persistence.Entity;
  */
 @Entity
 public class RemoteArtifactEntry
-        extends ArtifactEntry
+        extends ArtifactEntry implements RemoteArtifactEntryRead
 {
 
     private Boolean isCached = Boolean.FALSE;

@@ -21,7 +21,7 @@ import org.carlspring.strongbox.data.domain.GenericEntity;
  * @author carlspring
  */
 @Entity
-public class ArtifactEntry extends GenericEntity
+public class ArtifactEntry extends GenericEntity implements ArtifactEntryRead
 {
 
     private String storageId;
@@ -154,6 +154,12 @@ public class ArtifactEntry extends GenericEntity
     public void setArtifactArchiveListing(final ArtifactArchiveListing artifactArchiveListing)
     {
         this.artifactArchiveListing = artifactArchiveListing;
+    }
+
+    @Override
+    public ArtifactEntry getArtifactEntry()
+    {
+        return this;
     }
 
     @Transient

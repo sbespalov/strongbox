@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 
 import org.carlspring.strongbox.domain.ArtifactEntry;
+import org.carlspring.strongbox.domain.ArtifactEntryRead;
 
 /**
  * The main concept of {@link TempRepositoryPath} is to provide atomacity into
@@ -51,7 +52,7 @@ public class TempRepositoryPath extends RepositoryPath
     }
     
     @Override
-    public ArtifactEntry getArtifactEntry()
+    public ArtifactEntryRead getArtifactEntry()
         throws IOException
     {
         return tempTarget.getArtifactEntry();

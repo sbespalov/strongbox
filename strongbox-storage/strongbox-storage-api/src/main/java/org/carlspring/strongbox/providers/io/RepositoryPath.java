@@ -1,6 +1,7 @@
 package org.carlspring.strongbox.providers.io;
 
 import org.carlspring.strongbox.domain.ArtifactEntry;
+import org.carlspring.strongbox.domain.ArtifactEntryRead;
 import org.carlspring.strongbox.storage.Storage;
 import org.carlspring.strongbox.storage.repository.Repository;
 import org.carlspring.strongbox.util.PathUtils;
@@ -33,7 +34,7 @@ public class RepositoryPath
     
     private RepositoryFileSystem fileSystem;
     
-    protected ArtifactEntry artifactEntry;
+    protected ArtifactEntryRead artifactEntry;
     
     protected Map<RepositoryFileAttributeType, Object> cachedAttributes = new HashMap<>();
     
@@ -53,7 +54,7 @@ public class RepositoryPath
         return target;
     }
     
-    public ArtifactEntry getArtifactEntry() throws IOException
+    public ArtifactEntryRead getArtifactEntry() throws IOException
     {
         return artifactEntry;
     }

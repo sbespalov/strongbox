@@ -21,7 +21,7 @@ public class ArtifactDownloadingEventHandler extends AsyncArtifactEntryHandler
     @Override
     protected ArtifactEntry handleEvent(RepositoryPath repositoryPath) throws IOException
     {
-        ArtifactEntry artifactEntry = repositoryPath.getArtifactEntry();
+        ArtifactEntry artifactEntry = repositoryPath.getArtifactEntry().getArtifactEntry();
         
         artifactEntry.setDownloadCount(artifactEntry.getDownloadCount() + 1);
         artifactEntry.setLastUsed(new Date());

@@ -43,29 +43,29 @@ public abstract class AbstractSearchProvider
     private ArtifactResolutionService artifactResolutionService;
 
 
-    @Override
-    public SearchResult findExact(SearchRequest searchRequest)
-    {
-        ArtifactEntry artifactEntry = artifactEntryService.findOneArtifact(searchRequest.getStorageId(),
-                                                                           searchRequest.getRepositoryId(),
-                                                                           searchRequest.getArtifactCoordinates().toPath());
-
-        if (artifactEntry == null)
-        {
-            return null;
-        }
-        
-        SearchResult searchResult = createSearchResult(artifactEntry);
-
-        Storage storage = getConfiguration().getStorage(artifactEntry.getStorageId());
-        Repository repository = storage.getRepository(searchRequest.getRepositoryId());
-
-        List<CodeSnippet> snippets = snippetGenerator.generateSnippets(repository.getLayout(),
-                                                                         artifactEntry.getArtifactCoordinates());
-        searchResult.setSnippets(snippets);
-
-        return searchResult;
-    }
+//    @Override
+//    public SearchResult findExact(SearchRequest searchRequest)
+//    {
+//        ArtifactEntry artifactEntry = artifactEntryService.findOneArtifact(searchRequest.getStorageId(),
+//                                                                           searchRequest.getRepositoryId(),
+//                                                                           searchRequest.getArtifactCoordinates().toPath());
+//
+//        if (artifactEntry == null)
+//        {
+//            return null;
+//        }
+//        
+//        SearchResult searchResult = createSearchResult(artifactEntry);
+//
+//        Storage storage = getConfiguration().getStorage(artifactEntry.getStorageId());
+//        Repository repository = storage.getRepository(searchRequest.getRepositoryId());
+//
+//        List<CodeSnippet> snippets = snippetGenerator.generateSnippets(repository.getLayout(),
+//                                                                       artifactEntry.getArtifactCoordinates());
+//        searchResult.setSnippets(snippets);
+//
+//        return searchResult;
+//    }
 
     @Override
     public boolean contains(SearchRequest searchRequest)

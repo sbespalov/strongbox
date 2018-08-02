@@ -11,6 +11,7 @@ import org.carlspring.strongbox.artifact.coordinates.ArtifactCoordinates;
 import org.carlspring.strongbox.data.service.CrudService;
 import org.carlspring.strongbox.data.service.support.search.PagingCriteria;
 import org.carlspring.strongbox.domain.ArtifactEntry;
+import org.carlspring.strongbox.domain.ArtifactEntryRead;
 import org.carlspring.strongbox.services.support.ArtifactEntrySearchCriteria;
 import org.javatuples.Pair;
 import org.springframework.transaction.annotation.Transactional;
@@ -76,9 +77,9 @@ public interface ArtifactEntryService
                            String repositoryId,
                            String path);
 
-    ArtifactEntry findOneArtifact(String storageId,
-                                  String repositoryId,
-                                  String path);
+    ArtifactEntryRead findOneArtifact(String storageId,
+                                      String repositoryId,
+                                      String path);
 
     int delete(List<ArtifactEntry> artifactEntries);
 

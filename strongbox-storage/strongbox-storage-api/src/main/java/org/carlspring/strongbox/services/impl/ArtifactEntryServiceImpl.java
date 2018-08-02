@@ -26,7 +26,11 @@ import org.carlspring.strongbox.data.CacheName;
 import org.carlspring.strongbox.data.service.support.search.PagingCriteria;
 import org.carlspring.strongbox.domain.ArtifactArchiveListing;
 import org.carlspring.strongbox.domain.ArtifactEntry;
+import org.carlspring.strongbox.domain.ArtifactEntryRead;
+import org.carlspring.strongbox.domain.ArtifactEntryReadDto;
 import org.carlspring.strongbox.domain.ArtifactTagEntry;
+import org.carlspring.strongbox.domain.RemoteArtifactEntry;
+import org.carlspring.strongbox.domain.RemoteArtifactEntryReadDto;
 import org.carlspring.strongbox.services.ArtifactEntryService;
 import org.carlspring.strongbox.services.ArtifactTagService;
 import org.carlspring.strongbox.services.support.ArtifactEntrySearchCriteria;
@@ -466,14 +470,16 @@ class ArtifactEntryServiceImpl extends AbstractArtifactEntryService
 
     @Override
     @Cacheable(value = CacheName.Artifact.ARTIFACT_ENTRIES, key = "#p0 + '/' + #p1 + '/' + #p2")
-    public ArtifactEntry findOneArtifact(String storageId,
-                                         String repositoryId,
-                                         String path)
+    public ArtifactEntryRead findOneArtifact(String storageId,
+                                             String repositoryId,
+                                             String path)
     {
         ORID artifactEntryId = findArtifactEntryId(storageId, repositoryId, path);
         return Optional.ofNullable(artifactEntryId)
                        .flatMap(id -> Optional.ofNullable(entityManager.find(ArtifactEntry.class, id)))
-                       .map(e -> detach(e))
+                       .map(e -> e instanceof RemoteArtifactEntry
+                               ? new RemoteArtifactEntryReadDto(path, (RemoteArtifactEntry) e)
+                               : new ArtifactEntryReadDto(path, e))
                        .orElse(null);
     }
     
@@ -603,7 +609,7 @@ class ArtifactEntryServiceImpl extends AbstractArtifactEntryService
     private String generateKey(ArtifactEntry artifactEntry)
     {
         return Optional.ofNullable(artifactEntry)
-                       .map(e -> detach(e))
+                       //.map(e -> detach(e))
                        .map(e -> String.format("%s/%s/%s",
                                                e.getStorageId(),
                                                e.getRepositoryId(),

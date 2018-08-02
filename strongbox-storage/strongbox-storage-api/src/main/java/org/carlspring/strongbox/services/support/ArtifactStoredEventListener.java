@@ -43,7 +43,7 @@ public class ArtifactStoredEventListener extends AsyncArtifactEntryHandler
     @Override
     protected ArtifactEntry handleEvent(RepositoryPath repositoryPath) throws IOException
     {
-        ArtifactEntry artifactEntry = repositoryPath.getArtifactEntry();
+        ArtifactEntry artifactEntry = repositoryPath.getArtifactEntry().getArtifactEntry();
         
         final Repository repository = repositoryPath.getRepository();
         final LayoutProvider layoutProvider = layoutProviderRegistry.getProvider(repository.getLayout());

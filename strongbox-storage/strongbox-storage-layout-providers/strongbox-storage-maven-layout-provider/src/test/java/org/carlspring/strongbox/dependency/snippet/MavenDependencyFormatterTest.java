@@ -16,9 +16,11 @@ import javax.xml.bind.JAXBException;
 import org.carlspring.strongbox.artifact.coordinates.MavenArtifactCoordinates;
 import org.carlspring.strongbox.config.Maven2LayoutProviderTestConfig;
 import org.carlspring.strongbox.domain.ArtifactEntry;
+import org.carlspring.strongbox.domain.ArtifactEntryRead;
 import org.carlspring.strongbox.providers.ProviderImplementationException;
 import org.carlspring.strongbox.providers.layout.Maven2LayoutProvider;
 import org.carlspring.strongbox.providers.search.MavenIndexerSearchProvider;
+import org.carlspring.strongbox.providers.search.SearchException;
 import org.carlspring.strongbox.repository.IndexedMavenRepositoryFeatures;
 import org.carlspring.strongbox.services.ArtifactEntryService;
 import org.carlspring.strongbox.storage.repository.MutableRepository;
@@ -112,13 +114,13 @@ public class MavenDependencyFormatterTest
 
     private void removeEntryIfExists(MavenArtifactCoordinates coordinates1)
     {
-        ArtifactEntry artifactEntry = artifactEntryService.findOneArtifact(STORAGE0,
-                                                                           REPOSITORY_RELEASES,
-                                                                           coordinates1.toPath());
+        ArtifactEntryRead artifactEntry = artifactEntryService.findOneArtifact(STORAGE0,
+                                                                               REPOSITORY_RELEASES,
+                                                                               coordinates1.toPath());
 
         if (artifactEntry != null)
         {
-            artifactEntryService.delete(artifactEntry);
+            artifactEntryService.delete(artifactEntry.getObjectId());
         }
     }
 
@@ -190,7 +192,7 @@ public class MavenDependencyFormatterTest
     }
 
     @Test
-    public void testSearchExactWithDependencySnippet()
+    public void testSearchExactWithDependencySnippet() throws SearchException
     {
         Assume.assumeTrue(mavenIndexerSearchProvider.isPresent());
 
@@ -210,7 +212,7 @@ public class MavenDependencyFormatterTest
                                                                                "jar"),
                                                   MavenIndexerSearchProvider.ALIAS);
 
-        SearchResult searchResult = mavenIndexerSearchProvider.get().findExact(request);
+        SearchResult searchResult = mavenIndexerSearchProvider.get().search(request).getResults().iterator().next();
 
         assertFalse(searchResult.getSnippets().isEmpty());
 
