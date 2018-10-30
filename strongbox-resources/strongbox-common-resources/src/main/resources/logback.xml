@@ -2,6 +2,9 @@
 <!DOCTYPE configuration>
 <configuration scan="true" scanPeriod="30 seconds" debug="false">
 
+    <springProperty scope="context" name="loggingPath" source="strongbox.vault"
+        defaultValue="."/>
+
     <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">
         <!-- reset all previous level configurations of all j.u.l. loggers -->
         <resetJUL>true</resetJUL>
@@ -26,7 +29,7 @@
             <appender name="CRON-JOB-CONTEXT-SIFT-FILE-APPENDER"
                 class="ch.qos.logback.core.rolling.RollingFileAppender">
 
-                <file>${strongbox.vault}/logs/${strongbox-cron-context-name}.log</file>
+                <file>${loggingPath}/logs/${strongbox-cron-context-name}.log</file>
                 <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
                     <fileNamePattern>${strongbox.vault}/logs/${strongbox-cron-context-name}-%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
                     <maxFileSize>128MB</maxFileSize>
